@@ -1,0 +1,30 @@
+@layer utilities {
+    .cursor-pen {
+      cursor: url(.svg'), auto;
+    }
+}
+
+.flag {
+    position: relative;
+}
+  
+.flag::before {
+    content: "";
+    position: absolute;
+    top: -18px;
+    left: -5px;
+    width: 0;
+    height: 0;
+    border-top: 17px solid transparent;
+    border-bottom: 17px solid transparent;
+    border-left: 40px solid red;
+}
+  
+.flag::after {
+    content: "1";
+    position: absolute;
+    top: -17px;
+    left: -4px;
+    color: white;
+    font-size: 20px;
+}

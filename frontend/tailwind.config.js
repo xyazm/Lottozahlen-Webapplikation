@@ -17,6 +17,9 @@ module.exports = {
         l: '21px',
         xl:'24px',
       },
+      cursor: {
+        pen: 'url(/src/assets/handwritten-cross.svg), auto',
+      }
     },
   },
   variants: {
