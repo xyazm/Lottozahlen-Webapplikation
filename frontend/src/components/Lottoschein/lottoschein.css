@@ -4,7 +4,6 @@
 
 .flag {
     position: relative;
-    z-index: 1;
 }
   
 .flag::before {
