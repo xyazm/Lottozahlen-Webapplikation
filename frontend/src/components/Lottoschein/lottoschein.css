@@ -1,11 +1,10 @@
-@layer utilities {
-    .cursor-pen {
-      cursor: url(.svg'), auto;
-    }
+.hover-stift:hover {
+    cursor: url('../../assets/pen.svg') 2 22, pointer; /* URL des Stift-Bildes */
 }
 
 .flag {
     position: relative;
+    z-index: 1;
 }
   
 .flag::before {

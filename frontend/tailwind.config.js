@@ -18,7 +18,7 @@ module.exports = {
         xl:'24px',
       },
       cursor: {
-        pen: 'url(/src/assets/handwritten-cross.svg), auto',
+        pen: 'url(/src/assets/handwritten-cross.svg) 16 16, pointer',
       }
     },
   },
