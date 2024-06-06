@@ -5,7 +5,7 @@ import {ReactComponent as WarningIcon} from '../../assets/warning.svg';
 
 export default function Lottoschein({ anzahl }) {
 
-  //Matrix (Array of Arrays) with numbers from 1 to 49 (7x7 matrix
+  //Matrix (Array of Arrays) with numbers from 1 to 49 (7x7 matrix)
   const [numbers, setNumbers] = useState([]);
   useEffect(() => {
     const tempNumbers = [];
