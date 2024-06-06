@@ -17,9 +17,15 @@ module.exports = {
         l: '21px',
         xl:'24px',
       },
-      cursor: {
-        pen: 'url(/src/assets/handwritten-cross.svg) 16 16, pointer',
-      }
+      keyframes: {
+        'fade-in-out': {
+          '0%, 100%': { opacity: '0' },
+          '10%, 90%': { opacity: '1' },
+        },
+      },
+      animation: {
+        'fade-in-out': 'fade-in-out 3s forwards',
+      },
     },
   },
   variants: {

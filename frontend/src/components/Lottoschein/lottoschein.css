@@ -19,7 +19,7 @@
 }
   
 .flag::after {
-    content: "1";
+    content: attr(data-content);
     position: absolute;
     top: -17px;
     left: -4px;
