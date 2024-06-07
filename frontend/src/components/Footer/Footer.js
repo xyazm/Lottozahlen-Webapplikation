@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Body() {
+export default function Footer() {
   return(
     <div className="w-full px-10">
       <div className="border-t border-gray-300"></div>

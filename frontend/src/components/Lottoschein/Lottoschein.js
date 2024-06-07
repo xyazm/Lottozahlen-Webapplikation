@@ -47,10 +47,10 @@ export default function Lottoschein({ anzahl }) {
 
   return (
     <div className="relative">
-      <div className='warning-box h-20 '>
+      <div id="selectednum-warning-box" className='h-20 '>
         {showAlert && <AlertMessage />}
       </div>
-      <div className="flex flex-wrap items-start justify-items-center gap-4">
+      <div id="lottoscheine-grid"className="flex flex-wrap items-start justify-items-center gap-4">
         {Array.from({ length: anzahl }, (_, i) => (
           <div key={i} id={`lottschein-${i + 1}`} data-content={i + 1} className="flag grid grid-cols-7 gap-1 border-red-500 p-1 bg-red-100 border-[1.5px] hover-stift relative z-0 w-[max-content]">
             {numbers.map((row, j) => (
