@@ -15,7 +15,7 @@
     height: 0;
     border-top: 17px solid transparent;
     border-bottom: 17px solid transparent;
-    border-left: 40px solid red;
+    border-left: 40px solid #8DAE25;
 }
   
 .flag::after {
