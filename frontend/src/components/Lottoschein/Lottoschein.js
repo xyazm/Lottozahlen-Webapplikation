@@ -19,8 +19,12 @@ class LottoscheinObject {
     } else {
       if (this.selectedNumbers.length < 6) {
         this.selectedNumbers.push(num);
+      } else {
+        console.log('You can only select up to 6 numbers.');
+        return false;
       }
     }
+    return true;
   }
 
   // Function to get selected numbers
@@ -40,7 +44,7 @@ export default function Lottoschein({ anzahl }) {
    const newScheine = [...scheine]; // Copy array
    const schein = newScheine[scheinIndex]; // Get Lottoschein object
    schein.toggleNumber(num); // Toggle number
-   if (schein.getSelectedNumbers().length > 6) {
+   if (!schein.toggleNumber(num)){
      showTemporaryAlert(); // Show warning if more than 6 numbers are selected
    } else {
      setScheine(newScheine); // Update state
