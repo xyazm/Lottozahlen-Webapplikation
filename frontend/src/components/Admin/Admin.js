@@ -1,15 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function Admin({ setAnzahl }) {
   const [inputValue, setInputValue] = useState('');
+  // Flask API for settings
+  const API_URL = 'http://localhost:5000/settings'; 
 
-  const handleSubmit = (e) => {
+  // Load settings on component mount
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        setAnzahl(data.anzahlLottoscheine || 1); // Setze Standardwert
+        setInputValue(data.anzahlLottoscheine || ''); // Setze den Input-Wert
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+    fetchSettings();
+  }, [setAnzahl]);
+
+  // Handle form submission
+  const handleSubmit = async(e) => {
     e.preventDefault();
     const number = parseInt(inputValue, 10);
     if (!isNaN(number) && number > 0) {
-      setAnzahl(number);
+      // Call the function to send data to the API
+      await sendLottoscheinData(API_URL, number);
+      setAnzahl(number); // Update the state after saving
     }
   };
+
+  // Function to save the number of tickets
+  async function sendLottoscheinData(apiUrl, number) {
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ anzahlLottoscheine: number }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json(); 
+      return data;
+    } catch (error) {
+      console.error('Error sending data:', error);
+    }
+  }
+
 
   return (
     <div className="p-4 max-w-sm mx-auto">
