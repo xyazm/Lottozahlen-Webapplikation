@@ -1,4 +1,5 @@
 {
-    "anzahlLottoscheine": 9,
-    "showingFeedback": true,
+    "anzahlLottoscheine": 7,
+    "feedbackEnabled": false,
+    "personalData": false
 }
