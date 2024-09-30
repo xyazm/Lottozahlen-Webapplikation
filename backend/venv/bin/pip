@@ -1,6 +1,4 @@
-#!/bin/sh
-'''exec' "/Users/workac/Arbeit Kallweit/Lottozahlen-App/backend/venv/bin/python3.12" "$0" "$@"
-' '''
+#!/Users/mohandis/Lottozahlen-Webapplikation/backend/venv/bin/python3.12
 # -*- coding: utf-8 -*-
 import re
 import sys
