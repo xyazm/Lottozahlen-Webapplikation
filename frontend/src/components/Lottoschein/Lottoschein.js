@@ -40,7 +40,11 @@ export default function Lottoschein({ anzahl }) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   // Array of Lottoschein objects
-  const [scheine, setScheine] = useState(Array.from({ length: anzahl }, (_, i) => new LottoscheinObject(i)));
+  const [scheine, setScheine] = useState([]);
+
+  useEffect(() => {
+    setScheine(Array.from({ length: anzahl }, (_, i) => new LottoscheinObject(i)));
+  }, [anzahl]);
 
   // Function to handle number toggle
   const handleToggleNumber = (num, scheinIndex) => { 
