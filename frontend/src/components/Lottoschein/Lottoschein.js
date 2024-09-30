@@ -5,6 +5,7 @@ import {ReactComponent as CrossHandwrittenIcon} from '../../assets/handwritten-c
 import {ReactComponent as WarningIcon} from '../../assets/warning.svg';
 import {ReactComponent as KleeblattIcon} from '../../assets/kleeblatt.svg';
 
+// Class representing a Lottoschein object
 class LottoscheinObject {
   // Constructor for Lottoschein object
   constructor(index) {
@@ -12,7 +13,7 @@ class LottoscheinObject {
     this.selectedNumbers = [];
   }
 
-  // Function to toggle number
+  // Function to toggle number selection
   toggleNumber(num) {
     if (this.selectedNumbers.includes(num)) {
       this.selectedNumbers = this.selectedNumbers.filter(n => n !== num);
@@ -38,39 +39,40 @@ export default function Lottoschein({ anzahl }) {
   const [alertPosition, setAlertPosition] = useState({ x: 0, y: 0 });
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
- // Array of Lottoschein objects
- const [scheine, setScheine] = useState(Array.from({ length: anzahl }, (_, i) => new LottoscheinObject(i)));
- const handleToggleNumber = (num, scheinIndex) => { 
-   const newScheine = [...scheine]; // Copy array
-   const schein = newScheine[scheinIndex]; // Get Lottoschein object
-   schein.toggleNumber(num); // Toggle number
-   if (!schein.toggleNumber(num)){
-     showTemporaryAlert(); // Show warning if more than 6 numbers are selected
-   } else {
-     setScheine(newScheine); // Update state
-   }
-   };
+  // Array of Lottoschein objects
+  const [scheine, setScheine] = useState(Array.from({ length: anzahl }, (_, i) => new LottoscheinObject(i)));
 
-  // Funktion zum Anzeigen der ausgewählten Zahlen
+  // Function to handle number toggle
+  const handleToggleNumber = (num, scheinIndex) => { 
+    const newScheine = [...scheine]; // Copy array
+    const schein = newScheine[scheinIndex]; // Get Lottoschein object
+    if (!schein.toggleNumber(num)){
+      showTemporaryAlert(); // Show warning if more than 6 numbers are selected
+    } else {
+      setScheine(newScheine); // Update state
+    }
+  };
+
+  // Function to display selected numbers
   const handleShowSelectedNumbers = () => {
     scheine.forEach((scheinObject, index) => {
       console.log(`Selected numbers for Lottoschein ${index + 1}:`, scheinObject.getSelectedNumbers() || []);
-  });
-};
+    });
+  };
 
-  // Funktion zum Verfolgen der Position der Maus
+  // Function to track mouse position
   const trackMousePosition = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
 
-  // Funktion zum Anzeigen der Warnung
+  // Function to show temporary alert
   const showTemporaryAlert = () => {
     setAlertPosition(mousePosition);
     setShowAlert(true);
     setTimeout(() => {
       setShowAlert(false);
-    }, 5000); // Warnung wird nach 5 Sekunden ausgeblendet
+    }, 5000); // Hide alert after 5 seconds
   };
 
   return (
@@ -83,9 +85,10 @@ export default function Lottoschein({ anzahl }) {
   );
 }
 
+// Component for Lottoschein header
 function LottoscheinHeader() {
   return (
-    <div id="lottoschein-topic" className="bg-rubBlue  text-rubGreen font-heading flex items-center justify-between w-full">
+    <div id="lottoschein-topic" className="bg-rubBlue text-rubGreen font-heading flex items-center justify-between w-full">
       <div id="lottoschein-topic-left" className='m-3 flex items-start'>
         <KleeblattIcon className="w-8 h-8" />
         <h2 className="text-2xl ">
@@ -99,28 +102,29 @@ function LottoscheinHeader() {
   );
 }
 
+// Component for displaying the grid of Lottoscheine
 function LottoscheineGrid({ scheine, handleToggleNumber }) {
   return (
     <div id="lottoscheine-grid" className="flex flex-wrap items-start justify-items-center gap-4">
-        {scheine.map((schein, i) => (
-          <div key={i} id={`lottschein-${schein.index + 1}`} data-content={schein.index + 1} className="flag grid grid-cols-7 gap-1 border-rubGreen p-1 bg-green-100 border-[1.5px] hover-stift relative z-0 w-[max-content]">
-            {Matrix7x7().map((row, j) => (
-              row.map((num, k) => (
-                <div key={`${j}-${k}`} className="group relative border bg-white border-rubGreen text-rubGreen p-1 flex items-center justify-center z-[-1]" onClick={() => handleToggleNumber(num, schein.index)}>
-                  {num}
-                  <div className={`absolute bottom-1 right-1 z-3 transform ${schein.getSelectedNumbers().includes(num) ? 'opacity-100' : 'group-hover:opacity-50 opacity-0'}`}>
-                    <CrossHandwrittenIcon className='fill-black w-4' />
-                  </div>
+      {scheine.map((schein, i) => (
+        <div key={i} id={`lottschein-${schein.index + 1}`} data-content={schein.index + 1} className="flag grid grid-cols-7 gap-1 border-rubGreen p-1 bg-green-100 border-[1.5px] hover-stift relative z-0 w-[max-content]">
+          {Matrix7x7().map((row, j) => (
+            row.map((num, k) => (
+              <div key={`${j}-${k}`} className="group relative border bg-white border-rubGreen text-rubGreen p-1 flex items-center justify-center z-[-1]" onClick={() => handleToggleNumber(num, schein.index)}>
+                {num}
+                <div className={`absolute bottom-1 right-1 z-3 transform ${schein.getSelectedNumbers().includes(num) ? 'opacity-100' : 'group-hover:opacity-50 opacity-0'}`}>
+                  <CrossHandwrittenIcon className='fill-black w-4' />
                 </div>
-              ))
-            ))}
-          </div>
-        ))}
-      </div>
+              </div>
+            ))
+          ))}
+        </div>
+      ))}
+    </div>
   );
 }
 
-
+// Component for displaying alert
 function Alert({ showAlert, alertPosition }){
   return(
     <div id="selectednum-warning-box" className='h-20 absolute' style={{ left: alertPosition.x, top: alertPosition.y }}>
@@ -135,6 +139,7 @@ function Alert({ showAlert, alertPosition }){
   );
 }
 
+// Function to generate a 7x7 matrix of numbers
 function Matrix7x7() {
   const numbers = [];
   let count = 1;
