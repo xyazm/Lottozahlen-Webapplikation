@@ -16,6 +16,17 @@ export default function Header({ onLogout, sessionTimeLeft, isLoggedIn }) {
         <a href="/#" className="flex-shrink-0">
           <RubLogo className="w-[209px]" />
         </a>
+        <ul className="flex space-x-6 font-medium font-heading text-l ml-40">
+              <li>
+                <a href="/" className="text-white hover:text-gray-300" aria-current="page">Home</a>
+              </li>
+              <li>
+                <a href="/login" className="text-gray-300 hover:text-white">Login</a>
+              </li>
+              <li>
+                <a href="/contact" className="text-gray-300 hover:text-white">Contact</a>
+              </li>
+        </ul>
 
         {/* Session Timer und Status */}
         <div className="ml-auto text-white">
@@ -30,9 +41,11 @@ export default function Header({ onLogout, sessionTimeLeft, isLoggedIn }) {
         </div>
 
         {/* Logout Button */}
-        <div className="ml-4 cursor-pointer" onClick={onLogout}>
-          <LogOut className="my-1 w-[30px] fill-white hover:fill-gray-300" />
-        </div>
+        {isLoggedIn && ( // Logout-Button nur anzeigen, wenn der Benutzer eingeloggt ist
+          <div className="ml-4 cursor-pointer" onClick={onLogout}>
+            <LogOut className="my-1 w-[30px] fill-white hover:fill-gray-300" />
+          </div>
+        )}
       </nav>
     </header>
   );

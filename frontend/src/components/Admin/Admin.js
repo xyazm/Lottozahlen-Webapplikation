@@ -2,11 +2,39 @@ import React, { useState, useEffect } from 'react';
 import Button from '../Button/Button';
 
 export default function Admin() {
-  const [inputValue, setInputValue] = useState(2); // Setze einen Default-Wert für die Anzahl der Lottoscheine
-  const [feedbackAllowed, setFeedbackAllowed] = useState(false);
-  const [dataPrivacyAllowed, setDataPrivacyAllowed] = useState(false);
+  const [anzahlLottoscheine, setAnzahlLottoscheine] = useState(2); // Setze einen Default-Wert für die Anzahl der Lottoscheine
+  const [feedbackEnabled, setFeedbackEnabled] = useState(false);
+  const [personalData, setPersonalData] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState(''); // State für die Bestätigungsmeldung
   const API_URL = 'http://localhost:5000/settings';
+
+  // Objekt für alle Einstellungen
+  const settings = [
+    {
+      id: 'lottoValue-setting',
+      label: 'Anzahl der Lottoscheine',
+      value: anzahlLottoscheine,
+      type: 'number',
+      onChange: (e) => setAnzahlLottoscheine(e.target.value),
+      tooltip: 'Gibt an, wie viele Lottoscheine ein Student maximal abgeben kann.',
+    },
+    {
+      id: 'feedback-setting',
+      label: 'Feedback erlauben',
+      value: feedbackEnabled,
+      type: 'toggle',
+      onChange: (e) => setFeedbackEnabled(e.target.checked),
+      tooltip: 'Erlaubt es den Studenten, Ai-generierten Feedback und die Ergebnisse zur Musteranalyse zu sehen.',
+    },
+    {
+      id: 'personaldata-setting',
+      label: 'Abgabe Anonym oder Personenbezogen?',
+      value: personalData,
+      type: 'toggle',
+      onChange: (e) => setPersonalData(e.target.checked),
+      tooltip: 'Legt fest, ob die Abgabe anonym oder mit den persönlichen Daten der Studenten erfolgt.',
+    }
+  ];
 
   // Fetch settings from the API when the component mounts
   useEffect(() => {
@@ -15,9 +43,9 @@ export default function Admin() {
         const response = await fetch(API_URL);
         const data = await response.json();
         // Setze die erhaltenen Daten in den State
-        setInputValue(data.anzahlLottoscheine || 2); 
-        setFeedbackAllowed(data.feedbackEnabled || false);
-        setDataPrivacyAllowed(data.personalData || false);
+        setAnzahlLottoscheine(data.anzahlLottoscheine || 2); 
+        setFeedbackEnabled(data.feedbackEnabled || false);
+        setPersonalData(data.personalData || false);
       } catch (error) {
         console.error('Error fetching settings:', error);
       }
@@ -29,9 +57,9 @@ export default function Admin() {
   // Handle form submission to update the number of lottery tickets and other settings
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const number = parseInt(inputValue, 10);
+    const number = parseInt(anzahlLottoscheine, 10);
     if (!isNaN(number) && number > 0) {
-      await sendSettingsData(API_URL, number, feedbackAllowed, dataPrivacyAllowed);
+      await sendSettingsData(API_URL, number, feedbackEnabled, personalData);
       setConfirmationMessage('Einstellungen erfolgreich gespeichert!'); // Setze Bestätigungsmeldung
       // Optional: Setze die Bestätigungsmeldung nach 3 Sekunden zurück
       setTimeout(() => {
@@ -81,54 +109,18 @@ export default function Admin() {
       <div className="mb-8">
         <h2 className="text-xl font-semibold text-rubBlue mb-4">Einstellungen</h2>
 
-        {/* Anzahl Lottoscheine */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex items-center"> {/* Flexbox für die Ausrichtung */}
-            <label className="block text-sm font-medium text-gray-700 mr-2">Anzahl der Lottoscheine:</label>
-            <input
-              type="number"
-              min="1"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              className="mt-1 block w-20 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-rubBlue focus:border-rubBlue sm:text-sm"
-              required
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {settings.map((setting, index) => (
+            <Setting
+              key={index}
+              id={setting.id}  // Übergib die eindeutige ID
+              label={setting.label}
+              value={setting.value}
+              type={setting.type}
+              onChange={setting.onChange}
+              tooltip={setting.tooltip}
             />
-          </div>
-
-          
-          {/* Feedback Toggle */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Feedback erlauben:</label>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                checked={feedbackAllowed}
-                onChange={(e) => setFeedbackAllowed(e.target.checked)} // Setze den State basierend auf dem Checkbox-Status
-                className="toggle-checkbox hidden"
-              />
-              <label className={`toggle-label ${feedbackAllowed ? 'bg-rubGreen' : 'bg-gray-300'} relative inline-block w-12 h-6 rounded-full cursor-pointer`}>
-                <span className={`absolute left-1 top-0.5 w-5 h-5 rounded-full transition-transform duration-300 transform ${feedbackAllowed ? 'translate-x-full bg-rubGreen' : 'bg-white'}`}></span>
-              </label>
-              <span className="ml-2 text-sm">{feedbackAllowed ? 'Ja' : 'Nein'}</span>
-            </div>
-          </div>
-
-          {/* Personenbezogene Daten */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Erlauben personenbezogene Daten:</label>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                checked={dataPrivacyAllowed}
-                onChange={(e) => setDataPrivacyAllowed(e.target.checked)} // Setze den State basierend auf dem Checkbox-Status
-                className="toggle-checkbox hidden"
-              />
-              <label className={`toggle-label ${dataPrivacyAllowed ? 'bg-rubGreen' : 'bg-gray-300'} relative inline-block w-12 h-6 rounded-full cursor-pointer`}>
-                <span className={`absolute left-1 top-0.5 w-5 h-5 rounded-full transition-transform duration-300 transform ${dataPrivacyAllowed ? 'translate-x-full bg-green-500' : 'bg-white'}`}></span>
-              </label>
-              <span className="ml-2 text-sm">{dataPrivacyAllowed ? 'Ja' : 'Nein'}</span>
-            </div>
-          </div>
+          ))}
 
           {/* Submit Button */}
           <Button buttonId="savesettings-button" text="Einstellungen speichern" />
@@ -154,3 +146,72 @@ export default function Admin() {
     </div>
   );
 }
+
+function Setting ({ id, label, value, onChange, type, tooltip }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  const toggleTooltip = () => {
+    setShowTooltip(true);
+    setTimeout(() => {
+      setShowTooltip(false);
+    }, 3000);
+  };
+
+  return (
+    <div className="relative flex items-center mb-4">
+      <label className="text-sm font-medium text-gray-700 w-2/3 flex items-center">
+        {label}
+
+        {/* Fragezeichen für Tooltip */}
+        {tooltip && (
+          <button
+            type="button"
+            className="ml-2 text-rubBlue hover:text-rubBlue"
+            onClick={toggleTooltip}
+          >
+            ?
+          </button>
+        )}
+
+        {/* Tooltip für Erklärung */}
+        {showTooltip && (
+          <div className="absolute left-[100px] top-[-5px] z-[999] mt-2 p-2 bg-gray-900 text-white border border-gray-300 rounded shadow-lg transition-opacity duration-500 $animate-fade-in-out">
+          <span className="text-xs">{tooltip}</span> 
+        </div>
+        )}
+      </label>
+
+      {/* Input-Feld oder Toggle */}
+      <div className="w-1/3 flex items-center">
+        {type === 'number' ? (
+          <input
+            id={id}
+            type="number"
+            min="1"
+            value={value}
+            onChange={onChange}
+            className="mt-1 block w-full py-1.5 px-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-rubBlue focus:border-rubBlue sm:text-sm"
+          />
+        ) : (
+          <div className="flex items-center">
+            <input
+              id={id}
+              type="checkbox"
+              checked={value}
+              onChange={onChange}
+              className="sr-only peer"
+            />
+            <label
+              htmlFor={id}
+              className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-rubGreen"
+            ></label>
+            <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+              {value ? 'Ja' : 'Nein'}
+            </span>
+          </div>
+        )}
+        {/* Hier einfügen weiterer Seeting-Optionen */}
+      </div>
+    </div>
+  );
+};
