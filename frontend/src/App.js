@@ -17,7 +17,7 @@ function App() {
 
   return (
     <Router>
-      <div className="flex flex-col items-center min-h-screen">
+      <div className="flex flex-col items-center min-h-screen bg-lightGray">
         <Header onLogout={logout} sessionTimeLeft={sessionTimeLeft} isLoggedIn={isAuthenticated} />
         <Body userType={userType} onLogin={login} />
         <Footer />

@@ -1,3 +1,40 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    /* Überschriften-Stile */
+    h1 {
+      @apply font-heading font-semibold text-h1 leading-h1 text-rubBlue mb-6; 
+    }
+  
+    h2 {
+      @apply font-heading font-semibold text-h2 leading-h2 text-rubBlue mt-8 mb-2;
+    }
+  
+    /* Fließtext-Stil */
+    p {
+      @apply font-body text-l leading-8 text-gray-800; 
+    }
+
+    /* Benutzerdefinierte Listen-Stile nur für die Body-Komponente */
+    .body-list {
+        @apply list-none pl-4 text-rubBlue; /* Keine Punkte, Padding und Farbe */
+    }
+
+    .body-list li {
+        @apply relative pl-5; /* Relative Positionierung und Padding */
+    }
+
+    .body-list li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0.5rem; /* 8px */
+        width: 8px; /* quadratischer Punkt */
+        height: 8px; /* quadratischer Punkt */
+        background-color: #8DAE25; /* rubGreen */
+  }
+  }
+  
+

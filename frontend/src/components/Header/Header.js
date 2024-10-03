@@ -1,8 +1,11 @@
 import React from 'react';
 import { ReactComponent as RubLogo } from '../../assets/rub-logo.svg';
 import { ReactComponent as LogOut } from '../../assets/log-out.svg'; 
+import { useLocation } from 'react-router-dom';
 
 export default function Header({ onLogout, sessionTimeLeft, isLoggedIn }) {
+  const location = useLocation();
+
   // Formatierte Zeit anzeigen
   const formatTime = (timeInSeconds) => {
     const minutes = Math.floor(timeInSeconds / 60);
@@ -17,16 +20,39 @@ export default function Header({ onLogout, sessionTimeLeft, isLoggedIn }) {
           <RubLogo className="w-[209px]" />
         </a>
         <ul className="flex space-x-6 font-medium font-heading text-l ml-40">
-              <li>
-                <a href="/" className="text-white hover:text-gray-300" aria-current="page">Home</a>
-              </li>
-              <li>
-                <a href="/login" className="text-gray-300 hover:text-white">Login</a>
-              </li>
-              <li>
-                <a href="/contact" className="text-gray-300 hover:text-white">Contact</a>
-              </li>
+          <li>
+            <a
+              href="/"
+              className={`text-white hover:text-rubGreen hover:underline hover:decoration-rubGreen ${
+                location.pathname === '/' ? 'underline decoration-rubGreen' : ''
+              }`}
+              aria-current="page"
+            >
+              Home
+            </a>
+          </li>
+          <li>
+            <a
+              href="/login"
+              className={`text-white hover:text-rubGreen hover:underline hover:decoration-rubGreen ${
+                location.pathname === '/login' ? 'underline decoration-rubGreen' : ''
+              }`}
+            >
+              Login
+            </a>
+          </li>
+          <li>
+            <a
+              href="/contact"
+              className={`text-white hover:text-rubGreen hover:underline hover:decoration-rubGreen ${
+                location.pathname === '/contact' ? 'underline decoration-rubGreen' : ''
+              }`}
+            >
+              Contact
+            </a>
+          </li>
         </ul>
+
 
         {/* Session Timer und Status */}
         <div className="ml-auto text-white">

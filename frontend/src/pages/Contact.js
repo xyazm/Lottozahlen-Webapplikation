@@ -20,15 +20,13 @@ export default function Contact() {
   return (
     <div className="flex min-h-full flex-1 flex-col justify-center px-6 lg:px-8 text-rubBlue">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <h2 className="text-left font-bold font-heading text-l leading-9 tracking-tight">
-            Kontaktiere uns 
-        </h2>
+        <h2>Kontaktiere uns </h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="name" className="block text-s font-medium font-heading leading-6">
+            <label htmlFor="name" className="block text-l font-medium font-heading leading-6">
               Ihr Name
             </label>
             <div className="mt-2">
@@ -46,7 +44,7 @@ export default function Contact() {
           </div>
 
           <div>
-            <label htmlFor="subject" className="block text-s font-medium font-heading leading-6">
+            <label htmlFor="subject" className="block text-l font-medium font-heading leading-6">
               Betreff
             </label>
             <div className="mt-2">
@@ -64,7 +62,7 @@ export default function Contact() {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-s font-medium font-heading leading-6">
+            <label htmlFor="email" className="block text-l font-medium font-heading leading-6">
               Ihre E-Mail
             </label>
             <div className="mt-2">
@@ -82,7 +80,7 @@ export default function Contact() {
           </div>
 
           <div>
-            <label htmlFor="message" className="block text-s font-medium font-heading leading-6">
+            <label htmlFor="message" className="block text-l font-medium font-heading leading-6">
               Ihre Nachricht
             </label>
             <div className="mt-2">

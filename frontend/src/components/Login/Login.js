@@ -26,7 +26,7 @@ export default function Login({ onLogin }) {
   return (
     <div className="flex min-h-full flex-1 flex-col justify-center px-6 lg:px-8 text-rubBlue">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <h2 className="text-left font-bold font-heading text-l leading-9 tracking-tight">
+        <h2 className="text-left">
           Logge dich mit deinen Rub-Konto ein
         </h2>
       </div>
@@ -34,7 +34,7 @@ export default function Login({ onLogin }) {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="email" className="block text-s font-medium font-heading leading-6">
+            <label htmlFor="email" className="block text-l font-medium font-heading leading-6">
               Login-ID / E-Mail
             </label>
             <div className="mt-2">
@@ -54,7 +54,7 @@ export default function Login({ onLogin }) {
 
           <div>
             <div className="flex items-center justify-between">
-              <label htmlFor="password" className="block text-s font-medium font-heading leading-6">
+              <label htmlFor="password" className="block text-l font-medium font-heading leading-6">
                 Passwort
               </label>
             </div>
