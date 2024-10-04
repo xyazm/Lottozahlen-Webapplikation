@@ -1,10 +1,13 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session, redirect, url_for
 from flask_cors import CORS
+import random
+import string
 import json
 import os
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS to allow cross-origin requests
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 SETTINGS_FILE = 'settings.json'
 
