@@ -67,3 +67,4 @@ Die Flask-API sollte jetzt unter "http://localhost:5000" laufen.
 
 ## Erledigte Aufgaben
 - [x] Login Timer 
+- [x] Logik für Kontakformular mit Mailtrap
