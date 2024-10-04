@@ -5,10 +5,17 @@ import { useNavigate } from 'react-router-dom';
 export default function Login({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // E-Mail-Domäne überprüfen (nur RUB-Domäne)
+    if (!email.endsWith('@rub.de')) {
+      setErrorMessage('Nur E-Mail-Adressen der RUB-Domäne (@rub.de) sind erlaubt.');
+      return;
+    }
 
     onLogin(email, password)
       .then((userType) => {
@@ -29,6 +36,7 @@ export default function Login({ onLogin }) {
         <h2 className="text-left">
           Logge dich mit deinen Rub-Konto ein
         </h2>
+        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
