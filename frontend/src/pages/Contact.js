@@ -6,21 +6,52 @@ export default function Contact() {
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState(''); 
   const [message, setMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Weiter Logik zum absenden
-    console.log("Nachricht gesendet:", { name, email, subject, message });
-    setName('');
-    setEmail('');
-    setSubject('');
-    setMessage('');
+    
+    // Leere Fehler- und Erfolgsmeldungen zurücksetzen
+    setSuccessMessage('');
+    setErrorMessage('');
+
+    try {
+      const response = await fetch('http://localhost:5000/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          subject,
+          message,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSuccessMessage('Nachricht erfolgreich gesendet!'); // Erfolgreiche Meldung anzeigen
+        setName('');
+        setEmail('');
+        setSubject('');
+        setMessage('');
+      } else {
+        setErrorMessage('Fehler beim Senden der Nachricht.');
+      }
+    } catch (error) {
+      setErrorMessage('Es gab ein Problem mit der Anfrage.', error);
+      console.error('Error sending message:', error);
+    }
   };
 
   return (
     <div className="flex min-h-full flex-1 flex-col justify-center px-6 lg:px-8 text-rubBlue">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <h2>Kontaktiere uns </h2>
+        <h2>Kontaktiere uns</h2>
+        {successMessage && <p className="text-green-500">{successMessage}</p>}
+        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
