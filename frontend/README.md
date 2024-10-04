@@ -65,7 +65,7 @@ Die Flask-API sollte jetzt unter "http://localhost:5000" laufen.
 - [ ] Leistung und Ladezeiten optimieren
 - [ ] DB für Lottoschein-Abgabe
 - [ ] Formatieren des Codes
-- [ ] Logik für Kontakformular
+- [ ] reCAPTCHA wegen spam im conact.js
 - [ ] Login verbessern
 - [ ] Login -> Pin per Mail
 - [ ] Admin passowrt hashing (DB)
@@ -78,3 +78,4 @@ Die Flask-API sollte jetzt unter "http://localhost:5000" laufen.
 - [x] Grundlegende UI-Komponenten entwickelt
 - [x] Design der Pages Standardisiert
 - [x] Login Timer 
+- [x] Logik für Kontakformular mit Mailtrap
