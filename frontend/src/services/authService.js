@@ -1,29 +1,24 @@
 let sessionTimeout = null;
 
-// Simulierte Admin- und Studentendaten
-const adminCredentials = {
-  email: 'admin@example.com',
-  password: 'admin',
-};
-
-const studentCredentials = {
-  email: 'student@example.com',
-  password: 'student',
-};
-
 // Funktion zum Einloggen
-export const login = (email, password) => {
-  return new Promise((resolve, reject) => {
-    if (email === adminCredentials.email && password === adminCredentials.password) {
-      startSession('admin');
-      resolve('admin');
-    } else if (email === studentCredentials.email && password === studentCredentials.password) {
-      startSession('student');
-      resolve('student');
-    } else {
-      reject('Falsche Anmeldedaten!');
-    }
-  });
+export const login = (email) => {
+  return fetch('http://localhost:5000/login', {  // Stelle sicher, dass die URL korrekt ist
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Falsche Anmeldedaten!');
+      }
+      return response.json();
+    })
+    .then((data) => {
+      startSession(data.token); // Speichere den JWT-Token
+      return data.token;
+    });
 };
 
 // Funktion zum Abmelden
@@ -32,8 +27,8 @@ export const logout = () => {
 };
 
 // Funktion zum Starten der Sitzung
-const startSession = (userType) => {
-  localStorage.setItem('userType', userType);
+const startSession = (token) => {
+  localStorage.setItem('token', token); // Speichere den JWT-Token
   resetSessionTimeout();
 };
 
@@ -50,5 +45,5 @@ export const resetSessionTimeout = () => {
 // Funktion zum Beenden der Sitzung
 const clearSession = () => {
   clearTimeout(sessionTimeout);
-  localStorage.removeItem('userType');
+  localStorage.removeItem('token');
 };

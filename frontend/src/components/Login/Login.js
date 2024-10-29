@@ -4,39 +4,58 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Login({ onLogin }) {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [accessCode, setAccessCode] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [confirmationMessage, setConfirmationMessage] = useState(''); // Zustand für die Bestätigung
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
+  
     // E-Mail-Domäne überprüfen (nur RUB-Domäne)
     if (!email.endsWith('@rub.de')) {
       setErrorMessage('Nur E-Mail-Adressen der RUB-Domäne (@rub.de) sind erlaubt.');
       return;
     }
-
-    onLogin(email, password)
-      .then((userType) => {
-        if (userType === 'admin') {
-          navigate('/admin');
-        } else if (userType === 'student') {
-          navigate('/lottoschein');
-        }
+  
+    onLogin(email)  // Hier nur die E-Mail übergeben
+      .then((token) => {
+        // Überprüfe den Token oder setze den Benutzerstatus
+        navigate('/lottoschein'); // Navigation zur gewünschten Seite
       })
       .catch(() => {
         alert('Falsche Anmeldedaten!');
       });
   };
 
+  const handleSendAccessCode = () => {
+    fetch('http://localhost:5000/login', { // Diese Route muss vorhanden sein
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Fehler beim Senden des Zugangscodes!');
+        }
+        return response.json();
+      })
+      .then(() => {
+        setConfirmationMessage('Zugangscode wurde erfolgreich verschickt!'); // Erfolgsmeldung
+      })
+      .catch((error) => {
+        setErrorMessage(error.message); // Fehlerfall
+      });
+  };
+
   return (
     <div className="flex min-h-full flex-1 flex-col justify-center px-6 lg:px-8 text-rubBlue">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <h2 className="text-left">
-          Logge dich mit deinen Rub-Konto ein
-        </h2>
+        <h2 className="text-left">Logge dich mit deinem RUB-Konto ein</h2>
         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+        {confirmationMessage && <p className="text-green-500">{confirmationMessage}</p>} {/* Bestätigungsnachricht */}
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
@@ -45,43 +64,36 @@ export default function Login({ onLogin }) {
             <label htmlFor="email" className="block text-l font-medium font-heading leading-6">
               Login-ID / E-Mail
             </label>
-            <div className="mt-2">
-              <input
-                placeholder="E-Mail"
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:rubBlue sm:text-sm sm:leading-6"
-              />
-            </div>
+            <input
+              placeholder="E-Mail"
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300"
+            />
+            <div className="mt-4">
+            <Button buttonId="send-access-code-button" text="Zugangscode anfordern" onClick={handleSendAccessCode} />
+          </div>
           </div>
 
           <div>
-            <div className="flex items-center justify-between">
-              <label htmlFor="password" className="block text-l font-medium font-heading leading-6">
-                Passwort
-              </label>
-            </div>
-            <div className="mt-2">
-              <input
-                placeholder="Passwort"
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:rubBlue sm:text-sm sm:leading-6"
-              />
-            </div>
+            <label htmlFor="accessCode" className="block text-l font-medium font-heading leading-6">
+              Zugangscode
+            </label>
+            <input
+              placeholder="Zugangscode"
+              id="accessCode"
+              required
+              value={accessCode}
+              onChange={(e) => setAccessCode(e.target.value)}
+              className="block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300"
+            />
           </div>
+
           <div>
-            <Button buttonId="login-button" text="Login"/>
+            <Button buttonId="login-button" text="Login" />
           </div>
         </form>
       </div>

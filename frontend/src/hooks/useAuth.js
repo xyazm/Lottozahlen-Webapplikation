@@ -7,13 +7,12 @@ const useAuth = () => {
   const [sessionTimeLeft, setSessionTimeLeft] = useState(1800); // 30 Minuten in Sekunden
 
   // Funktion zum Einloggen
-  const login = useCallback((email, password) => {
-    return authLogin(email, password)
-      .then((userType) => {
+  const login = useCallback((email) => {
+    return authLogin(email)
+      .then((token) => {
         setIsAuthenticated(true);
-        setUserType(userType);
         setSessionTimeLeft(1800); // Setzt den Session-Timer auf 30 Minuten
-        return userType;
+        return token; // Gebe den Token zurück
       })
       .catch((error) => {
         alert(error);
