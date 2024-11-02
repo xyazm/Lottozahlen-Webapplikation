@@ -8,8 +8,16 @@ import Contact from '../../pages/Contact';
 import Datenschutz from '../../pages/Datenschutz';  // Importiere die Datenschutzseite
 import Impressum from '../../pages/Impressum';  // Importiere die Impressumseite
 
-export default function Body({ userType, onLogin }) {
+export default function Body() {
+  const [userType, setUserType] = useState(null); // Zustand für den Benutzerstatus
   const [anzahl, setAnzahl] = useState(1);
+
+  const handleLogin = (token) => {
+    // Hier würdest du den Token verarbeiten und den Benutzerstatus setzen
+    // Zum Beispiel, wenn der Token gültig ist:
+    setUserType('student'); // Setze den Typ des Benutzers (z.B. 'student' oder 'admin')
+  };
+
 
   return (
   <main className="min-h-screen bg-lightGray flex items-center justify-center px-24 py-12 w-[100%]"> {/* Hintergrund hellgrau, horizontaler Abstand 100px */}
@@ -19,7 +27,7 @@ export default function Body({ userType, onLogin }) {
         <Route path="/" element={<Home />} />
 
         {/* Login-Seite */}
-        <Route path="/login" element={!userType ? <Login onLogin={onLogin} /> : <Navigate to="/" />} />
+        <Route path="/login" element={!userType ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
 
         {/* Routen für Admin */}
         <Route path="/admin" element={userType === 'admin' ? <Admin setAnzahl={setAnzahl} /> : <Navigate to="/" />} />

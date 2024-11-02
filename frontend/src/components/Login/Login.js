@@ -18,21 +18,35 @@ export default function Login({ onLogin }) {
       return;
     }
   
-    onLogin(email)  // Hier nur die E-Mail übergeben
-      .then((token) => {
-        // Überprüfe den Token oder setze den Benutzerstatus
-        navigate('/lottoschein'); // Navigation zur gewünschten Seite
-      })
-      .catch(() => {
-        alert('Falsche Anmeldedaten!');
-      });
-  };
+   // Zugangscode validieren
+   fetch('http://localhost:5000/validate_code', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, access_code: accessCode }), // Zugangscode hier senden
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Ungültiger Zugangscode!');
+      }
+      return response.json();
+    })
+    .then(({ token }) => {
+      onLogin(token); // Token zum Login verwenden
+      navigate('/lottoschein'); // Navigation zur gewünschten Seite
+    })
+    .catch((error) => {
+      setErrorMessage(error.message); // Fehlerfall
+    });
+};
 
   const handleSendAccessCode = () => {
     fetch('http://localhost:5000/login', { // Diese Route muss vorhanden sein
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        "Accept": "application/json"
       },
       body: JSON.stringify({ email }),
     })
