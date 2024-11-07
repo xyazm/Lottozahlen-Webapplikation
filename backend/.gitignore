@@ -1,6 +1,27 @@
-# ignore virtual environment
+# Ignore virtual environments
 venv/
-# ignore environment files
+env/
+.venv/
+
+# Ignore environment files
 .env
 .env/
+
+# Ignore __pycache__ directories
 __pycache__/
+/__pycache__
+
+# Ignore log files
+*.log
+
+# Ignore SQLite databases
+*.sqlite3
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore VSCode settings
+.vscode/
+
+# Ignore macOS specific files
+.DS_Store
