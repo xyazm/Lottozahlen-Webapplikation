@@ -1,13 +1,15 @@
+import Cookies from 'js-cookie';
+
 let sessionTimeout = null;
 
 // Funktion zum Einloggen
-export const login = (email) => {
-  return fetch('http://localhost:5000/login', {  // Stelle sicher, dass die URL korrekt ist
+export const login = (email, accessCode) => {
+  return fetch('https://localhost:5000/login', {  // Stelle sicher, dass die URL korrekt ist
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, access_code: accessCode }),
   })
     .then((response) => {
       if (!response.ok) {
@@ -28,7 +30,7 @@ export const logout = () => {
 
 // Funktion zum Starten der Sitzung
 const startSession = (token) => {
-  localStorage.setItem('token', token); // Speichere den JWT-Token
+  Cookies.set('token', token, { expires: 365 });
   resetSessionTimeout();
 };
 
@@ -45,5 +47,5 @@ export const resetSessionTimeout = () => {
 // Funktion zum Beenden der Sitzung
 const clearSession = () => {
   clearTimeout(sessionTimeout);
-  localStorage.removeItem('token');
+  Cookies.remove('token');
 };

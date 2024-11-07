@@ -1,15 +1,39 @@
 import React, { useState } from 'react';
 import Button from '../Button/Button';
 import { useNavigate } from 'react-router-dom';
+import useAuth from '../../hooks/useAuth';
+import Cookies from 'js-cookie';
 
-export default function Login({ onLogin }) {
+
+export default function Login() {
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [accessCode, setAccessCode] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [confirmationMessage, setConfirmationMessage] = useState(''); // Zustand für die Bestätigung
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const fetchProtectedData = async () => {
+    const token = Cookies.get('token'); // Token aus den Cookies holen
+    const response = await fetch('https://localhost:5000/protected', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`, // Token im Header hinzufügen
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.log('Error data:', errorData);
+      throw new Error('Fehler beim Zugriff auf geschützte Route!');
+    }
+
+    const data = await response.json();
+    console.log('Protected data:', data); // Die geschützten Daten hier verwenden
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
   
     // E-Mail-Domäne überprüfen (nur RUB-Domäne)
@@ -18,31 +42,43 @@ export default function Login({ onLogin }) {
       return;
     }
   
-   // Zugangscode validieren
-   fetch('http://localhost:5000/validate_code', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ email, access_code: accessCode }), // Zugangscode hier senden
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error('Ungültiger Zugangscode!');
-      }
-      return response.json();
-    })
-    .then(({ token }) => {
-      onLogin(token); // Token zum Login verwenden
-      navigate('/lottoschein'); // Navigation zur gewünschten Seite
-    })
-    .catch((error) => {
-      setErrorMessage(error.message); // Fehlerfall
+  // Zugangscode validieren
+  try {
+    const response = await fetch('https://localhost:5000/validate_code', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ email, access_code: accessCode }), // Zugangscode hier senden
     });
+
+    if (!response.ok) {
+      throw new Error('Ungültiger Zugangscode!');
+    }
+
+    // Benutzerdaten im useAuth login
+    const data = await response.json();
+
+    // Hier das Token speichern, das vom Server zurückgegeben wurde
+    if (data.token) {
+      Cookies.set('token', data.token, {
+        sameSite: 'None', // oder 'Lax' je nach Bedarf
+        secure: true // Setzen Sie dies auf true, wenn Sie HTTPS verwenden
+    });
+    }
+
+    await login(email, accessCode); // Verwende die login-Funktion aus dem useAuth-Hook
+    await fetchProtectedData();
+
+    navigate('/lottoschein'); // Navigation zur gewünschten Seite
+  } catch (error) {
+    setErrorMessage(error.message); // Fehlerfall
+  }
 };
 
   const handleSendAccessCode = () => {
-    fetch('http://localhost:5000/login', { // Diese Route muss vorhanden sein
+    fetch('https://localhost:5000/login', { // Diese Route muss vorhanden sein
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

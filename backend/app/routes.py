@@ -1,7 +1,8 @@
-from flask import Blueprint, request, jsonify, session
+from datetime import datetime as dt, timedelta
+from flask import Blueprint, request, jsonify
 from .database import *
 from .mail import send_access_code, send_contact_email
-from .jwt_helper import generate_jwt
+from .jwt_helper import *
 import random
 import string
 
@@ -15,7 +16,7 @@ def generate_access_code():
 def student_login():
     email = request.json.get('email')
     if email.endswith('@rub.de'):
-        student = Student.query.filter_by(email=email).first()
+        student = get_student_from_db(email)
 
         if not student:
             name_part = email.split('@')[0]
@@ -23,10 +24,16 @@ def student_login():
             add_student_to_db(nachname, vorname, email)
 
         access_code = generate_access_code()
-        session['access_code'] = access_code
-        session['email'] = email
-        print(f"Access Code: {access_code} and Email: {email}")
-        print(f"Access Code: {session.get('access_code')} and Email: {session.get('email') }")
+        expires_at = dt.utcnow() + timedelta(minutes=30) 
+        existing_code = get_code_from_db(student.id)
+        if existing_code:
+            existing_code.code = access_code
+            existing_code.expires_at = expires_at
+        else:
+            new_access_code = AccessCode(student_id=student.id, code=access_code, expires_at=expires_at)
+            db.session.add(new_access_code)
+
+        db.session.commit()
         send_access_code(email, access_code)  # E-Mail senden
         return jsonify({'message': 'Zugangscode wurde gesendet.'}), 200
     else:
@@ -35,18 +42,36 @@ def student_login():
 @settings_routes.route('/validate_code', methods=['POST'])
 def validate_access_code():
     submitted_code = request.json.get('access_code')
-    email = session.get('email') 
-    saved_code = session.get('access_code')
+    email = request.json.get('email') 
+    student = get_student_from_db(email)
+    access_record = get_code_from_db(student.id)
 
-    # Debug-Ausgaben, um die Sitzung zu überprüfen
-    print(f"Submitted Code: {submitted_code}, Saved Code in Session: {saved_code}, Email in Session: {email}")
+    if access_record and access_record.code == submitted_code:
+        # Überprüfen, ob der Zugangscode abgelaufen ist
+        if dt.utcnow() > access_record.expires_at:
+            return jsonify({'error': 'Zugangscode ist abgelaufen.'}), 401
+        
+        db.session.delete(access_record)
+        db.session.commit()
 
-    if saved_code == submitted_code:
-        user_id = get_user_id_from_db(email)
-        token = generate_jwt(user_id)
+        token = generate_jwt(student.id)
         return jsonify({'token': token}), 200
     else:
         return jsonify({'error': 'Ungültiger Zugangscode.'}), 401
+    
+@settings_routes.route('/protected', methods=['GET'])
+@login_required
+def protected():
+    token = request.headers.get('Authorization')
+    print(f"Token: {token}")
+    if token:
+        token = token.split(" ")[1] if " " in token else token
+        user_id = decode_jwt(token)
+        if user_id is None:
+            return jsonify({'error': 'Token ungültig oder abgelaufen'}), 401
+        return jsonify({'logged_in_as': user_id}), 200
+    else:
+        return jsonify({'error': 'Token nicht bereitgestellt'}), 401
 
 
 @settings_routes.route('/contact', methods=['POST'])
@@ -73,6 +98,7 @@ def contact():
 
 
 @settings_routes.route('/settings', methods=['GET'])
+@login_required_admin
 def get_settings():
     settings = load_settings()
     if settings:
@@ -82,6 +108,7 @@ def get_settings():
 
 
 @settings_routes.route('/settings', methods=['POST'])
+@login_required_admin
 def update_settings():
     new_settings = request.json
     

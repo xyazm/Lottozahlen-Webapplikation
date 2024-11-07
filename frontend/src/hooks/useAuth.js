@@ -7,8 +7,8 @@ const useAuth = () => {
   const [sessionTimeLeft, setSessionTimeLeft] = useState(1800); // 30 Minuten in Sekunden
 
   // Funktion zum Einloggen
-  const login = useCallback((email) => {
-    return authLogin(email)
+  const login = useCallback((email, accessCode) => {
+    return authLogin(email, accessCode) // authLogin sollte auch den accessCode verwenden
       .then((token) => {
         setIsAuthenticated(true);
         setSessionTimeLeft(1800); // Setzt den Session-Timer auf 30 Minuten

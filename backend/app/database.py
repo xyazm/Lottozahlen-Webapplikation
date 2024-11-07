@@ -1,5 +1,6 @@
 # app/database.py
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -17,9 +18,14 @@ class Settings(db.Model):
     feedbackEnabled = db.Column(db.Boolean, default=False)
     personalData = db.Column(db.Boolean, default=False)
 
-def create_connection(app):
-    """Initialisiert die Datenbank mit der Flask-App."""
-    db.init_app(app)
+class AccessCode(db.Model):
+    __tablename__ = 'access_code'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
+    code = db.Column(db.String(6), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    student = db.relationship('Student', backref='access_codes')
 
 def add_student_to_db(nachname, vorname, email):
     """Fügt einen neuen Studenten zur Datenbank hinzu."""
@@ -27,10 +33,15 @@ def add_student_to_db(nachname, vorname, email):
     db.session.add(new_student)
     db.session.commit()
 
-def get_user_id_from_db(email):
+def get_student_from_db(email):
     """Holt die Benutzer-ID anhand der E-Mail-Adresse."""
     student = Student.query.filter_by(email=email).first()
-    return student.id if student else None
+    return student if student else None
+
+def get_code_from_db(id):
+    """Holt den Zugangscode aus der Datenbank."""
+    access_code = AccessCode.query.filter_by(student_id=id).first()
+    return access_code if access_code else None
 
 def load_settings():
     """Lädt die Einstellungen aus der Datenbank."""
