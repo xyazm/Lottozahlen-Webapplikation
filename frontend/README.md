@@ -61,6 +61,8 @@ Die Flask-API sollte jetzt unter "http://localhost:5000" laufen.
 ## To-Do
 - [ ] Admin login
 - [ ] prüfen der Token und sicherheit
+- [ ] Server anfragen pber hook nicht in Components
+- [ ] project structur for flask (solid)
 
 ## Erledigte Aufgaben
 - [x] Login Timer 
