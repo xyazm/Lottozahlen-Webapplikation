@@ -11,6 +11,19 @@ class Student(db.Model):
     vorname = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
 
+class Lottoscheine(db.Model):
+    __tablename__ = 'lottoscheine'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
+    lottozahl1 = db.Column(db.Integer, nullable=False)
+    lottozahl2 = db.Column(db.Integer, nullable=False)
+    lottozahl3 = db.Column(db.Integer, nullable=False)
+    lottozahl4 = db.Column(db.Integer, nullable=False)
+    lottozahl5 = db.Column(db.Integer, nullable=False)
+    lottozahl6 = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    student = db.relationship('Student', backref='lottoscheine')
+
 class Settings(db.Model):
     __tablename__ = 'settings'
     id = db.Column(db.Integer, primary_key=True)
@@ -34,6 +47,28 @@ def add_student_to_db(nachname, vorname, email):
     db.session.commit()
 
 def get_student_from_db(email):
+    """Holt die Benutzer-ID anhand der E-Mail-Adresse."""
+    student = Student.query.filter_by(email=email).first()
+    return student if student else None
+
+def save_lottoschein_to_db(student_id, lottozahlen):
+    # Beispiel für Lottozahlen: [1, 5, 12, 23, 34, 45]
+    if len(lottozahlen) != 6:
+        raise ValueError("Lottozahlen müssen genau 6 Zahlen enthalten.")
+    
+    new_schein = Lottoscheine(
+        student_id=student_id,
+        lottozahl1=lottozahlen[0],
+        lottozahl2=lottozahlen[1],
+        lottozahl3=lottozahlen[2],
+        lottozahl4=lottozahlen[3],
+        lottozahl5=lottozahlen[4],
+        lottozahl6=lottozahlen[5]
+    )
+    db.session.add(new_schein)
+    db.session.commit()
+
+def get_scheine_from_db(email):
     """Holt die Benutzer-ID anhand der E-Mail-Adresse."""
     student = Student.query.filter_by(email=email).first()
     return student if student else None

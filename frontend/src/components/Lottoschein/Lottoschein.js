@@ -36,6 +36,7 @@ class LottoscheinObject {
 
 export default function Lottoschein() {
   const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
   const [alertPosition, setAlertPosition] = useState({ x: 0, y: 0 });
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
@@ -68,7 +69,7 @@ export default function Lottoschein() {
     const newScheine = [...scheine]; // Copy array
     const schein = newScheine[scheinIndex]; // Get Lottoschein object
     if (!schein.toggleNumber(num)){
-      showTemporaryAlert(); // Show warning if more than 6 numbers are selected
+      showTemporaryAlert('Sie können nur bis zu 6 Zahlen auswählen.'); // Show warning if more than 6 numbers are selected
     } else {
       setScheine(newScheine); // Update state
     }
@@ -88,7 +89,8 @@ export default function Lottoschein() {
   };
 
   // Function to show temporary alert
-  const showTemporaryAlert = () => {
+  const showTemporaryAlert = (message = '') => {
+    setAlertMessage(message);
     setAlertPosition(mousePosition);
     setShowAlert(true);
     setTimeout(() => {
@@ -96,12 +98,54 @@ export default function Lottoschein() {
     }, 5000); // Hide alert after 5 seconds
   };
 
+ // Funktion zur Überprüfung der Lottoscheine
+ const validateScheine = () => {
+  const invalidScheine = scheine.filter(schein => schein.getSelectedNumbers().length !== 6);
+  if (invalidScheine.length > 0) {
+    showTemporaryAlert('Jeder Lottoschein muss genau 6 Zahlen enthalten!');
+    return false;
+  }
+  return true;
+};
+
+
+// Funktion zum Abspeichern der Lottoscheine
+const handleSaveScheine = () => {
+  const token = localStorage.getItem("token");
+  if (validateScheine()) {
+    const scheinData = scheine.map(schein => ({
+      numbers: schein.getSelectedNumbers()
+    }));
+
+    fetch('http://localhost:5000/save-lottoscheine', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ scheine: scheinData }),
+    }).then(response => {
+      if (!response.ok) {
+        throw new Error('Fehler beim Speichern der Lottoscheine: ' + response.statusText);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Lottoscheine erfolgreich gespeichert:', data);
+      // Erfolgs-Feedback hier (z.B. eine Success-Alert)
+    })
+    .catch(error => {
+      console.error('Fehler beim Speichern der Lottoscheine:', error);
+    });
+  }
+};
+
   return (
     <div className="relative" onMouseMove={trackMousePosition}>
-      <Alert showAlert={showAlert} alertPosition={alertPosition} />
+      <Alert showAlert={showAlert} alertPosition={alertPosition} message={alertMessage} />
       <LottoscheinHeader />
       <LottoscheineGrid scheine={scheine} handleToggleNumber={handleToggleNumber} />
-      <Button buttonId="show-selected-numbers" text="Show selected numbers" onClick={handleShowSelectedNumbers} />
+      <Button buttonId="save-lottoscheine" text="Lottoscheine abgeben" onClick={handleSaveScheine} />
     </div>
   );
 }
@@ -146,14 +190,14 @@ function LottoscheineGrid({ scheine, handleToggleNumber }) {
 }
 
 // Component for displaying alert
-function Alert({ showAlert, alertPosition }){
+function Alert({ showAlert, alertPosition, message }){
   return(
     <div id="selectednum-warning-box" className='h-20 absolute' style={{ left: alertPosition.x, top: alertPosition.y }}>
       {showAlert && 
       <div id="alert-tooltip-click" role="tooltip" 
         className='absolute z-10 p-3 flex items-center text-[12px] text-white rounded-lg shadow-sm bg-gray-700 animate-fade-in-out w-60' >
         <WarningIcon className="w-7 h-7 fill-red-500 mr-2" aria-hidden="true" />
-        <span>Sie haben bereits 6 Zahlen auf diesen Schein ausgewählt.</span>
+        <span>{message}</span>
       </div>
       }
     </div>

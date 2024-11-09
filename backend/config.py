@@ -1,5 +1,4 @@
 import os
-from app.database import db
 
 class Config:
     SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:@localhost/Bachelorarbeit_Lottoscheinanalyse'  # Verbindungs-URI
