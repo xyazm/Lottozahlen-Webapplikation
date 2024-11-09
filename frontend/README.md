@@ -59,12 +59,12 @@ flask run
 Die Flask-API sollte jetzt unter "http://localhost:5000" laufen.
 
 ## To-Do
-- [ ] Login -> Pin per Mail für Studenten, nur für rub studenten
-- [ ] Admin passowrt hashing (DB)
-- [ ] Login Session bricht beim aktualisieren ab
-- [ ] DB, wenn student abgegeben hat anzeigen
-- [ ] Token setzen
+- [ ] Admin login
+- [ ] prüfen der Token und sicherheit
 
 ## Erledigte Aufgaben
 - [x] Login Timer 
 - [x] Logik für Kontakformular mit Mailtrap
+- [x] Token setzen
+- [x] Login Session bricht beim aktualisieren ab
+- [x] Login -> Pin per Mail für Studenten, nur für rub studenten
