@@ -1,60 +1,104 @@
-import { useState, useEffect, useCallback } from 'react';
-import { login as authLogin, logout as authLogout, resetSessionTimeout } from '../services/authService';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userType, setUserType] = useState(null); // 'admin' oder 'student'
-  const [sessionTimeLeft, setSessionTimeLeft] = useState(1800); // 30 Minuten in Sekunden
+  const [sessionTimeLeft, setSessionTimeLeft] = useState(1800); // 30 Minuten
+  const [timerActive, setTimerActive] = useState(false);
+  const sessionTimeoutRef = useRef(null);
 
-  // Funktion zum Einloggen
-  const login = useCallback((email, password) => {
-    return authLogin(email, password)
-      .then((userType) => {
-        setIsAuthenticated(true);
-        setUserType(userType);
-        setSessionTimeLeft(1800); // Setzt den Session-Timer auf 30 Minuten
-        return userType;
-      })
-      .catch((error) => {
-        alert(error);
-        throw error;
-      });
-  }, []);
-
-  // Funktion zum Abmelden
   const logout = useCallback(() => {
-    authLogout();
     setIsAuthenticated(false);
-    setUserType(null);
-    setSessionTimeLeft(0); // Timer zurücksetzen
+    setTimerActive(false);
+    setSessionTimeLeft(0);
+    localStorage.removeItem('token'); // Entfernt den Token aus localStorage
+    alert('Deine Sitzung ist abgelaufen. Du wirst nun abgemeldet.');
+    window.location.href = '/login'; // Weiterleitung zum Login
   }, []);
 
-  // Effekt zur Verwaltung des Session-Timers
-  useEffect(() => {
-    if (isAuthenticated) {
-      resetSessionTimeout(); // Session-Timer zurücksetzen (vom authService)
+  const resetSessionTimeout = useCallback(() => {
+    if (sessionTimeoutRef.current) {
+      clearTimeout(sessionTimeoutRef.current); // Timeout löschen
     }
-  }, [isAuthenticated]);
 
-  // Timer herunterzählen
+    sessionTimeoutRef.current = setTimeout(() => {
+      logout(); // Logout nach der festgelegten Zeit
+    }, sessionTimeLeft * 1000); // Timeout in Millisekunden
+  }, [logout, sessionTimeLeft]);
+
+
+  const login = useCallback(() => {
+    setIsAuthenticated(true);
+    setTimerActive(true);
+    setSessionTimeLeft(1800);
+    resetSessionTimeout();
+    window.location.href = '/lottoschein'; 
+  }, [resetSessionTimeout]);
+
   useEffect(() => {
-    if (isAuthenticated && sessionTimeLeft > 0) {
+    // Token-Überprüfung nur beim ersten Laden der Seite
+    const checkTokenValidity = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setIsAuthenticated(false);
+        return;
+      }
+
+      const response = await fetch('http://localhost:5000/verify-token', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        setIsAuthenticated(true);
+        setTimerActive(true);
+        setSessionTimeLeft(1800); // Setze die Session-Zeit auf 30 Minuten
+        resetSessionTimeout(); // Starte den Session-Timeout
+      } else {
+        setIsAuthenticated(false);
+        localStorage.removeItem('token'); // Entferne den ungültigen Token
+      }
+    };
+
+    checkTokenValidity(); // Nur einmal beim ersten Laden ausführen
+  }, []); 
+
+  useEffect(() => {
+    const handleActivity = () => {
+      if (isAuthenticated) {
+        resetSessionTimeout();
+      }
+    };
+
+    window.addEventListener('click', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+
+    return () => {
+      window.removeEventListener('click', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+    };
+  }, [resetSessionTimeout, isAuthenticated]);
+
+  useEffect(() => {
+    if (isAuthenticated && sessionTimeLeft > 0 && timerActive) {
       const interval = setInterval(() => {
         setSessionTimeLeft((prevTime) => prevTime - 1);
-      }, 1000); // Jede Sekunde herunterzählen
+      }, 1000);
 
-      return () => clearInterval(interval); // Aufräumen, wenn der Benutzer sich ausloggt
+      return () => clearInterval(interval);
     } else if (sessionTimeLeft === 0) {
-      logout(); // Session abgelaufen
+      logout();
     }
-  }, [isAuthenticated, sessionTimeLeft, logout]);
+  }, [isAuthenticated, sessionTimeLeft, logout, timerActive]);
 
   return {
     isAuthenticated,
-    userType,
     login,
     logout,
-    sessionTimeLeft, // Zeigt die verbleibende Zeit an
+    sessionTimeLeft,
+    setTimerActive,
   };
 };
 

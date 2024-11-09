@@ -59,23 +59,14 @@ flask run
 Die Flask-API sollte jetzt unter "http://localhost:5000" laufen.
 
 ## To-Do
-- [ ] Funktionen für die Lotto-Analyse implementieren
-- [ ] UI/UX der Anwendung verbessern
-- [ ] Unit-Tests für die Komponenten schreiben
-- [ ] Leistung und Ladezeiten optimieren
-- [ ] DB für Lottoschein-Abgabe
-- [ ] Formatieren des Codes
-- [ ] reCAPTCHA wegen spam im conact.js
-- [ ] Login verbessern
-- [ ] Login -> Pin per Mail
-- [ ] Admin passowrt hashing (DB)
-- [ ] Datenschutz etc aufbessern
+- [ ] Admin login
+- [ ] prüfen der Token und sicherheit
+- [ ] Server anfragen pber hook nicht in Components
+- [ ] project structur for flask (solid)
 
 ## Erledigte Aufgaben
-- [x] React-Frontend eingerichtet
-- [x] Benutzeranmeldung implementiert
-- [x] API-Endpunkte für Lotto-Daten erstellt
-- [x] Grundlegende UI-Komponenten entwickelt
-- [x] Design der Pages Standardisiert
 - [x] Login Timer 
 - [x] Logik für Kontakformular mit Mailtrap
+- [x] Token setzen
+- [x] Login Session bricht beim aktualisieren ab
+- [x] Login -> Pin per Mail für Studenten, nur für rub studenten

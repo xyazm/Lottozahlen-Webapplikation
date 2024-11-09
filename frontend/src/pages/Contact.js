@@ -31,7 +31,7 @@ export default function Contact() {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        // const data = await response.json();
         setSuccessMessage('Nachricht erfolgreich gesendet!'); // Erfolgreiche Meldung anzeigen
         setName('');
         setEmail('');

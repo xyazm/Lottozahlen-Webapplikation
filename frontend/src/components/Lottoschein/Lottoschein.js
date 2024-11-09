@@ -34,13 +34,30 @@ class LottoscheinObject {
   }
 };
 
-export default function Lottoschein({ anzahl }) {
+export default function Lottoschein() {
   const [showAlert, setShowAlert] = useState(false);
   const [alertPosition, setAlertPosition] = useState({ x: 0, y: 0 });
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   // Array of Lottoschein objects
+  const [anzahl, setAnzahl] = useState(0); 
   const [scheine, setScheine] = useState([]);
+
+  useEffect(() => {
+    // API-Aufruf zum Abrufen der Einstellungen
+    fetch('http://localhost:5000/get-lottoschein-settings')
+      .then(response => response.json())
+      .then(data => {
+        // Überprüfen, ob die Antwort die Zahl enthält und diese speichern
+        if (data && !data.error) {
+          setAnzahl(data); // Die Zahl direkt in den Zustand setzen
+        } else {
+          console.error('Keine Lottoschein-Einstellungen gefunden.');
+        }
+      })
+      .catch(error => console.error('Fehler beim Abrufen der Einstellungen:', error));
+  }, []);
+
 
   useEffect(() => {
     setScheine(Array.from({ length: anzahl }, (_, i) => new LottoscheinObject(i)));
@@ -95,12 +112,12 @@ function LottoscheinHeader() {
     <div id="lottoschein-topic" className="bg-rubBlue text-rubGreen font-heading flex items-center justify-between w-full">
       <div id="lottoschein-topic-left" className='m-3 flex items-start'>
         <KleeblattIcon className="w-8 h-8" />
-        <h2 className="text-2xl ">
+        <h3 className="text-2xl ">
           <span className='font-bold'>RUB</span>Lotterie
-        </h2>
+        </h3>
       </div>
       <div id="lottoschein-topic-right" className='m-3 flex items-end'>
-        <h2 className="text-2xl ">Gib dem Zufall keine Chance</h2>
+        <h3 className="text-2xl ">Gib dem Zufall keine Chance</h3>
       </div>
     </div>
   );

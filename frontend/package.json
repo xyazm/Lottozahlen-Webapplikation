@@ -8,10 +8,13 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "js-cookie": "^3.0.5",
+    "nth-check": "^2.1.1",
+    "postcss": "8.4.31",
     "react": "^18.3.1",
+    "react-cookie-consent": "^9.0.0",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2",
-    "react-scripts": "^5.0.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -39,6 +42,14 @@
     ]
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.3"
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "react-scripts": "^5.0.1",
+    "resolve-url-loader": "^5.0.0",
+    "svgo": "^2.0.0",
+    "tailwindcss": "^3.4.14",
+    "webpack-dev-server": "^5.1.0"
+  },
+  "overrides": {
+    "nth-check": "^2.1.1"
   }
 }
