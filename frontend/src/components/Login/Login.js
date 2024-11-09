@@ -54,7 +54,6 @@ export default function Login() {
         const token = data.access_token;
         localStorage.setItem('token', token); // Speichere den Token im localStorage
         login(); // Authentifizierung starten
-        navigate('/lottoschein'); // Weiterleitung nach dem Login
       } else {
         setErrorMessage('Ungültiger Zugangscode oder E-Mail.');
       }

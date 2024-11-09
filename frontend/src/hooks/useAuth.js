@@ -1,11 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
-
-let sessionTimeout = null;
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [sessionTimeLeft, setSessionTimeLeft] = useState(1800); // 30 Minuten
   const [timerActive, setTimerActive] = useState(false);
+  const sessionTimeoutRef = useRef(null);
 
   const logout = useCallback(() => {
     setIsAuthenticated(false);
@@ -17,20 +16,26 @@ const useAuth = () => {
   }, []);
 
   const resetSessionTimeout = useCallback(() => {
-    clearTimeout(sessionTimeout);
-    sessionTimeout = setTimeout(() => {
-      logout();
-    }, 30 * 60 * 1000);
-  }, [logout]);
+    if (sessionTimeoutRef.current) {
+      clearTimeout(sessionTimeoutRef.current); // Timeout löschen
+    }
+
+    sessionTimeoutRef.current = setTimeout(() => {
+      logout(); // Logout nach der festgelegten Zeit
+    }, sessionTimeLeft * 1000); // Timeout in Millisekunden
+  }, [logout, sessionTimeLeft]);
+
 
   const login = useCallback(() => {
     setIsAuthenticated(true);
     setTimerActive(true);
     setSessionTimeLeft(1800);
     resetSessionTimeout();
+    window.location.href = '/lottoschein'; 
   }, [resetSessionTimeout]);
 
   useEffect(() => {
+    // Token-Überprüfung nur beim ersten Laden der Seite
     const checkTokenValidity = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -42,23 +47,23 @@ const useAuth = () => {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json' 
+          'Content-Type': 'application/json',
         }
       });
 
       if (response.ok) {
         setIsAuthenticated(true);
-        setTimerActive(true); 
-        setSessionTimeLeft(1800);
-        resetSessionTimeout();
+        setTimerActive(true);
+        setSessionTimeLeft(1800); // Setze die Session-Zeit auf 30 Minuten
+        resetSessionTimeout(); // Starte den Session-Timeout
       } else {
         setIsAuthenticated(false);
         localStorage.removeItem('token'); // Entferne den ungültigen Token
       }
     };
 
-    checkTokenValidity();
-  }, [resetSessionTimeout]);
+    checkTokenValidity(); // Nur einmal beim ersten Laden ausführen
+  }, []); 
 
   useEffect(() => {
     const handleActivity = () => {

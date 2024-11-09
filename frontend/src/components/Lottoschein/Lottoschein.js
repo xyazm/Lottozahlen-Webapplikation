@@ -112,12 +112,12 @@ function LottoscheinHeader() {
     <div id="lottoschein-topic" className="bg-rubBlue text-rubGreen font-heading flex items-center justify-between w-full">
       <div id="lottoschein-topic-left" className='m-3 flex items-start'>
         <KleeblattIcon className="w-8 h-8" />
-        <h2 className="text-2xl ">
+        <h3 className="text-2xl ">
           <span className='font-bold'>RUB</span>Lotterie
-        </h2>
+        </h3>
       </div>
       <div id="lottoschein-topic-right" className='m-3 flex items-end'>
-        <h2 className="text-2xl ">Gib dem Zufall keine Chance</h2>
+        <h3 className="text-2xl ">Gib dem Zufall keine Chance</h3>
       </div>
     </div>
   );
