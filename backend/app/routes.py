@@ -1,5 +1,5 @@
 from datetime import datetime as dt, timedelta
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, make_response
 from .database import *
 from .mail import send_access_code, send_contact_email
 from .jwt_helper import *
@@ -10,7 +10,6 @@ settings_routes = Blueprint('settings', __name__)
 
 def generate_access_code():
     return ''.join(random.choices(string.ascii_letters + string.digits, k=6))
-
 
 @settings_routes.route('/login', methods=['POST'])
 def student_login():
@@ -54,25 +53,24 @@ def validate_access_code():
         db.session.delete(access_record)
         db.session.commit()
 
-        token = generate_jwt(student.id)
-        return jsonify({'token': token}), 200
+        access_token = create_jwt_token(student.id)
+        return jsonify({'message': 'Login erfolgreich!','access_token': access_token}), 200
     else:
         return jsonify({'error': 'Ungültiger Zugangscode.'}), 401
     
 @settings_routes.route('/protected', methods=['GET'])
 @login_required
-def protected():
-    token = request.headers.get('Authorization')
-    print(f"Token: {token}")
-    if token:
-        token = token.split(" ")[1] if " " in token else token
-        user_id = decode_jwt(token)
-        if user_id is None:
-            return jsonify({'error': 'Token ungültig oder abgelaufen'}), 401
-        return jsonify({'logged_in_as': user_id}), 200
+def protected(user_id):
+    return jsonify({'logged_in_as': user_id}), 200
+    
+@settings_routes.route('/verify-token', methods=['POST'])
+@jwt_required()
+def verify_token():
+    user_id = get_jwt_identity()
+    if user_id:
+        return jsonify({'isValid': True}), 200
     else:
-        return jsonify({'error': 'Token nicht bereitgestellt'}), 401
-
+        return jsonify({'isValid': False}), 401
 
 @settings_routes.route('/contact', methods=['POST'])
 def contact():
@@ -96,23 +94,24 @@ def contact():
         print(f"Fehler beim Senden der Nachricht: {e}")  # Ausgabe im Terminal für Fehleranalyse
         return jsonify({'error': 'Fehler beim Senden der Nachricht'}), 500
 
+@settings_routes.route('/get-lottoschein-settings', methods=['GET'])
+def get_lottoschein_settings():
+    settings = load_settings()
+    if settings:
+        return jsonify(settings.anzahlLottoscheine), 200
+    else:
+        return jsonify({'error': 'Keine Einstellungen gefunden.'}), 404
 
 @settings_routes.route('/settings', methods=['GET'])
 @login_required_admin
 def get_settings():
     settings = load_settings()
-    if settings:
-        return jsonify(settings), 200
-    else:
-        return jsonify({'error': 'Keine Einstellungen gefunden.'}), 404
-
+    return jsonify(settings), 200 if settings else jsonify({'error': 'Keine Einstellungen gefunden.'}), 404
 
 @settings_routes.route('/settings', methods=['POST'])
 @login_required_admin
 def update_settings():
     new_settings = request.json
-    
-    # Sicherstellen, dass alle erforderlichen Felder vorhanden sind
     required_fields = ['anzahlLottoscheine', 'feedbackEnabled', 'personalData']
     if not all(field in new_settings for field in required_fields):
         return jsonify({'error': 'Alle Felder sind erforderlich.'}), 400

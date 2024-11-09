@@ -6,7 +6,7 @@ export default function Admin() {
   const [feedbackEnabled, setFeedbackEnabled] = useState(false);
   const [personalData, setPersonalData] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState(''); // State für die Bestätigungsmeldung
-  const API_URL = 'https://localhost:5000/settings';
+  const API_URL = 'http://localhost:5000/settings';
 
   // Objekt für alle Einstellungen
   const settings = [

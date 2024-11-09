@@ -12,7 +12,6 @@ function App() {
   const {
     isAuthenticated,
     userType,
-    login,  // Login-Funktion vom Hook
     logout, // Logout-Funktion vom Hook
     sessionTimeLeft, // Verbleibende Session-Zeit
   } = useAuth();
@@ -34,11 +33,19 @@ function App() {
     console.log('Cookies accepted');
   };
 
+  useEffect(() => {
+    // Überprüfen, ob der Benutzer bereits Cookies akzeptiert hat
+    const accepted = Cookies.get('cookiesAccepted');
+    if (accepted) {
+      setCookiesAccepted(true);
+    }
+  }, []);
+
   return (
     <Router>
       <div className="flex flex-col items-center min-h-screen bg-lightGray">
         <Header onLogout={logout} sessionTimeLeft={sessionTimeLeft} isLoggedIn={isAuthenticated} />
-        <Body userType={userType} onLogin={login} />
+        <Body userType={userType} isAuthenticated={isAuthenticated} />
         <Footer />
         {!cookiesAccepted && (
           <CookieConsent

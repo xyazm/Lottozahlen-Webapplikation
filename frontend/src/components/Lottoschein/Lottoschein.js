@@ -34,13 +34,30 @@ class LottoscheinObject {
   }
 };
 
-export default function Lottoschein({ anzahl }) {
+export default function Lottoschein() {
   const [showAlert, setShowAlert] = useState(false);
   const [alertPosition, setAlertPosition] = useState({ x: 0, y: 0 });
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   // Array of Lottoschein objects
+  const [anzahl, setAnzahl] = useState(0); 
   const [scheine, setScheine] = useState([]);
+
+  useEffect(() => {
+    // API-Aufruf zum Abrufen der Einstellungen
+    fetch('http://localhost:5000/get-lottoschein-settings')
+      .then(response => response.json())
+      .then(data => {
+        // Überprüfen, ob die Antwort die Zahl enthält und diese speichern
+        if (data && !data.error) {
+          setAnzahl(data); // Die Zahl direkt in den Zustand setzen
+        } else {
+          console.error('Keine Lottoschein-Einstellungen gefunden.');
+        }
+      })
+      .catch(error => console.error('Fehler beim Abrufen der Einstellungen:', error));
+  }, []);
+
 
   useEffect(() => {
     setScheine(Array.from({ length: anzahl }, (_, i) => new LottoscheinObject(i)));

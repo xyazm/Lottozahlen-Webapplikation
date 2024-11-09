@@ -23,5 +23,12 @@ __pycache__/
 # Ignore VSCode settings
 .vscode/
 
+# SSL keys
+# informatik.rub.de.key
+# informatik_ruhr-uni-bochum_de_cert.cer
+
 # Ignore macOS specific files
 .DS_Store
+
+# VSCode settings
+.vscode/

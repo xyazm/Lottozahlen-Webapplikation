@@ -1,43 +1,30 @@
-import jwt
 import datetime
-from flask import current_app, request, jsonify
+from flask import current_app, jsonify
 from functools import wraps
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, get_jwt
 
-def generate_jwt(user_id, is_admin=False):
-    expiration_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
-    token = jwt.encode({'sub': user_id, 'exp': expiration_time,  'is_admin': is_admin},current_app.config['JWT_SECRET'], algorithm='HS256')
+jwt = JWTManager()
+
+def create_jwt_token(user_id, is_admin=False):
+    expiration_time = datetime.timedelta(minutes=30)
+    token = create_access_token(identity=user_id, additional_claims={"is_admin": is_admin}, expires_delta=expiration_time)
     return token
-
-def decode_jwt(token):
-    try:
-        payload = jwt.decode(token, current_app.config['JWT_SECRET'], algorithms=['HS256'])
-        return payload['sub']
-    except jwt.ExpiredSignatureError:
-        return None
-    except jwt.InvalidTokenError:
-        return None
     
 def login_required(f):
-    """Decorator to protect routes that require a valid JWT token."""
+    """Dekorator für Routen, die eine gültige JWT-Anmeldung erfordern."""
     @wraps(f)
+    @jwt_required()  # Erfordert ein gültiges JWT
     def decorated_function(*args, **kwargs):
-        token = request.headers.get('Authorization')
-        if token:
-            token = token.split(" ")[1] if " " in token else token  # Remove "Bearer" prefix
-            user_id = decode_jwt(token)
-            if user_id:
-                return f(*args, **kwargs)
-        return jsonify({'error': 'Unauthorized access. Please provide a valid token.'}), 401
+        user_id = get_jwt_identity()  # Ruft die Benutzer-ID aus dem Token ab
+        return f(user_id=user_id, *args, **kwargs)  # Übergibt die Benutzer-ID an die Route
     return decorated_function
 
 def login_required_admin(f):
     @wraps(f)
+    @jwt_required()
     def decorated_function(*args, **kwargs):
-        token = request.headers.get('Authorization')
-        if token:
-            token = token.split(" ")[1] if " " in token else token
-            payload = decode_jwt(token)
-            if payload and payload.get('is_admin'):
-                return f(*args, **kwargs)
+        claims = get_jwt()
+        if claims.get("is_admin"):
+            return f(*args, **kwargs)
         return jsonify({'error': 'Unauthorized access. Admin privileges required.'}), 403
     return decorated_function

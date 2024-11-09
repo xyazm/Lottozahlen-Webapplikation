@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Lottoschein from '../Lottoschein/Lottoschein';
 import Admin from '../Admin/Admin';
@@ -8,16 +8,7 @@ import Contact from '../../pages/Contact';
 import Datenschutz from '../../pages/Datenschutz';  // Importiere die Datenschutzseite
 import Impressum from '../../pages/Impressum';  // Importiere die Impressumseite
 
-export default function Body() {
-  const [userType, setUserType] = useState(null); // Zustand für den Benutzerstatus
-  const [anzahl, setAnzahl] = useState(1);
-
-  const handleLogin = (token) => {
-    // Hier würdest du den Token verarbeiten und den Benutzerstatus setzen
-    // Zum Beispiel, wenn der Token gültig ist:
-    setUserType('student'); // Setze den Typ des Benutzers (z.B. 'student' oder 'admin')
-  };
-
+export default function Body({ userType, isAuthenticated }) {
 
   return (
   <main className="min-h-screen bg-lightGray flex items-center justify-center px-24 py-12 w-[100%]"> {/* Hintergrund hellgrau, horizontaler Abstand 100px */}
@@ -27,13 +18,10 @@ export default function Body() {
         <Route path="/" element={<Home />} />
 
         {/* Login-Seite */}
-        <Route path="/login" element={!userType ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/lottoschein" /> : <Login />} />
 
-        {/* Routen für Admin */}
-        <Route path="/admin" element={userType === 'admin' ? <Admin setAnzahl={setAnzahl} /> : <Navigate to="/" />} />
-
-        {/* Routen für Lottoschein */}
-        <Route path="/lottoschein" element={userType === 'student' ? <Lottoschein anzahl={anzahl} /> : <Navigate to="/" />} />
+        {/* Lottoschein-Seite, nur zugänglich wenn eingeloggt */}
+        <Route path="/lottoschein" element={isAuthenticated ? <Lottoschein /> : <Navigate to="/login" />} />
 
         {/* Weitere Seiten */}
         <Route path="/contact" element={<Contact />} />
