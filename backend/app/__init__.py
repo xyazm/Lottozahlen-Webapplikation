@@ -5,8 +5,10 @@ from flask_migrate import Migrate
 from dotenv import load_dotenv
 from config import Config  
 from .database import db
-from .routes import settings_routes
-from .jwt_helper import jwt
+from .settings import settings_routes
+from .jwt_helper import jwt, jwt_routes
+from .login import login_routes
+from .mail import mail_routes
 
 load_dotenv()  
 mail = Mail()
@@ -18,6 +20,9 @@ def create_app():
     CORS(app, resources={r"/*": {"origins": "http://localhost:3000", "supports_credentials": True}})
 
     app.register_blueprint(settings_routes)
+    app.register_blueprint(jwt_routes)
+    app.register_blueprint(login_routes)
+    app.register_blueprint(mail_routes)
 
     # Initialisiere die SQLAlchemy-Datenbank mit der App
     db.init_app(app)  

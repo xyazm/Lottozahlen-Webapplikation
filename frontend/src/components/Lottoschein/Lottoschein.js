@@ -75,13 +75,6 @@ export default function Lottoschein() {
     }
   };
 
-  // Function to display selected numbers
-  const handleShowSelectedNumbers = () => {
-    scheine.forEach((scheinObject, index) => {
-      console.log(`Selected numbers for Lottoschein ${index + 1}:`, scheinObject.getSelectedNumbers() || []);
-    });
-  };
-
   // Function to track mouse position
   const trackMousePosition = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -107,7 +100,6 @@ export default function Lottoschein() {
   }
   return true;
 };
-
 
 // Funktion zum Abspeichern der Lottoscheine
 const handleSaveScheine = () => {
