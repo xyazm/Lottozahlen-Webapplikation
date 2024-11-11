@@ -100,7 +100,7 @@ export default function Admin() {
 }
 
 function Statistik() {
-  const { haeufigkeitPlot, gitterPlot } = usePlot();
+  const { haeufigkeitPlot, gitterPlot, primePlot } = usePlot();
   return (
     <div className="relative block items-center mb-4">
       <h3 className="text-lg font-semibold text-gray-800">Statistiken:</h3>
@@ -122,6 +122,21 @@ function Statistik() {
       </div>
       <div className="w-full h-[400px]">
         {/* Scatterplot der Gitteranalyse */}
+        {primePlot ? (
+          <>
+            <h2>Primezahlen/Gerade ungerade Zahlen</h2>
+            <Plot
+              data={primePlot.data}
+              layout={primePlot.layout}
+              config={{ responsive: true }} // Für eine responsive Darstellung
+            />
+          </>
+        ) : (
+          <p>Lade zahlenanalyse...</p>
+        )}
+      </div>
+      <div className="w-full h-[400px]">
+        {/* Scatterplot der Gitteranalyse */}
         {gitterPlot ? (
           <>
             <h2>Verteilung der Lottozahlen im Gitter</h2>
@@ -134,7 +149,7 @@ function Statistik() {
         ) : (
           <p>Lade Gitteranalyse...</p>
         )}
-      </div>
+        </div>
     </div>
   );
 }
