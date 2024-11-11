@@ -15,50 +15,84 @@ def get_lottozahlen_haeufigkeit():
     # Alle Lottozahlen aus der Datenbank abfragen
     scheine = get_lottoscheine_from_db()
     
-    # Alle Zahlen in einer einzigen Liste sammeln
-    zahlen = []
-    for schein in scheine:
-        zahlen.extend([
-            schein.lottozahl1, schein.lottozahl2, schein.lottozahl3,
-            schein.lottozahl4, schein.lottozahl5, schein.lottozahl6
-        ])
+    # Zahlen aller Scheine in einer Liste sammeln
+    zahlen = [zahl for schein in scheine for zahl in [
+        schein.lottozahl1, schein.lottozahl2, schein.lottozahl3,
+        schein.lottozahl4, schein.lottozahl5, schein.lottozahl6
+    ]]
     
-    # Häufigkeit der Zahlen mit Counter ermitteln
-    haeufigkeit = Counter(zahlen)
-
-    # DataFrame für die Plotly-Visualisierung erstellen
-    df = pd.DataFrame({
-        'Zahl': list(haeufigkeit.keys()),
-        'Häufigkeit': list(haeufigkeit.values())
-    })
+    # Häufigkeit der Zahlen ermitteln und DataFrame erstellen
+    haeufigkeit_df = pd.DataFrame(Counter(zahlen).items(), columns=['Zahl', 'Häufigkeit'])
 
     # Erstellen des Plotly-Balkendiagramms
-    fig = px.bar(df, x='Zahl', y='Häufigkeit', title='Häufigkeit der Lottozahlen',
-                 labels={'Zahl': 'Lottozahl', 'Häufigkeit': 'Anzahl der Vorkommen'})
+    fig = px.bar(haeufigkeit_df, x='Zahl', y='Häufigkeit', title='Häufigkeit der Lottozahlen',
+                labels={'Zahl': 'Lottozahl', 'Häufigkeit': 'Anzahl der Vorkommen'})
 
-    return fig.to_json()
+    return json.loads(fig.to_json())
 
 @analysis_routes.route('/haeufigkeit')
 def lotto_haeufigkeit():
     plot_json = get_lottozahlen_haeufigkeit()
     return jsonify(plot_json)
 
-
-# Breits gezogene Zahlen, vergangene Gewinnzahlen
-historische_gewinnzahlen = [
-    {4, 15, 23, 36, 42, 48},  # Set für jede Ziehung
-    # Weitere Gewinnzahlen...
-]
-
-def ist_gewinnzahl(schein, historische_gewinnzahlen):
-    gezogene_zahlen = set(schein['zahlen'])
-    return any(gezogene_zahlen == gewinnzahlen for gewinnzahlen in historische_gewinnzahlen)
-
 # Gitteranalyse (gleichmäßige Verteilung)
+# Analyse ist noch falsch ! muss noch korrigiert werden, gibt nur häuftigkeit als heatmap zurück
 def zeilen_und_spalten_verteilung(schein):
-    zeilen = [(zahl - 1) // 7 for zahl in schein['zahlen']]
-    spalten = [(zahl - 1) % 7 for zahl in schein['zahlen']]
-    return len(set(zeilen)), len(set(spalten))
+    # Lottozahlen aus dem Schein extrahieren
+    zahlen = [schein.lottozahl1, schein.lottozahl2, schein.lottozahl3, 
+              schein.lottozahl4, schein.lottozahl5, schein.lottozahl6]
+    
+    # Zeilen und Spalten berechnen
+    zeilen = [(zahl - 1) // 7 for zahl in zahlen]  # Zeile für jede Zahl
+    spalten = [(zahl - 1) % 7 for zahl in zahlen]  # Spalte für jede Zahl
+
+    return zeilen, spalten
+
+# Funktion zur Durchführung der Gitteranalyse und Generierung des Scatterplot
+def get_gitteranalyse():
+    # Alle Scheine abrufen
+    scheine = get_lottoscheine_from_db()
+    
+    # Sicherstellen, dass Scheine vorhanden sind
+    if not scheine:
+        return {}, {}
+
+    # Leere Matrix für Zeilen- und Spaltenhäufigkeiten erstellen
+    gitter_matrix = pd.DataFrame([[0] * 7 for _ in range(7)], columns=range(7), index=range(7))
+
+    # Gitteranalyse für jeden Schein durchführen
+    for schein in scheine:
+        zeilen, spalten = zeilen_und_spalten_verteilung(schein)
+        
+        # Häufigkeit der Zahlen in Zeilen und Spalten erhöhen
+        for z, s in zip(zeilen, spalten):
+            gitter_matrix.iloc[z, s] += 1
+
+    # Heatmap erstellen: Umbenennung der Spalten und Zeilen für bessere Lesbarkeit
+    gitter_matrix.columns = [f"Spalte {i+1}" for i in range(7)]
+    gitter_matrix.index = [f"Zeile {i+1}" for i in range(7)]
+
+    # Erstellen der Heatmap
+    fig = px.imshow(gitter_matrix, color_continuous_scale='Blues', 
+                    title="Häufigkeit der Lottozahlen im Gitter", 
+                    labels={'x': 'Spalten', 'y': 'Zeilen'})
+    
+    # Diagramm in JSON umwandeln
+    return json.loads(fig.to_json())
+
+# Flask-Route zur Gitteranalyse
+@analysis_routes.route('/gitteranalyse')
+def gitteranalyse():
+    try:
+        plot_json = get_gitteranalyse()
+        return jsonify({
+            'gitter_plot': plot_json
+        })
+    except Exception as e:
+        # Fehlerbehandlung, falls ein Fehler auftritt
+        print(f"Fehler in der Gitteranalyse: {e}")
+        return jsonify({'error': str(e)}), 500
+
 
 # Runde Zahlen
 def anzahl_runder_zahlen(schein):
@@ -105,3 +139,13 @@ def durchschnittliche_distanz(schein):
 def ist_diagonal(schein):
     differenzen = [j - i for i, j in zip(sorted(schein['zahlen']), sorted(schein['zahlen'])[1:])]
     return all(d == 8 or d == 6 for d in differenzen)
+
+# Breits gezogene Zahlen, vergangene Gewinnzahlen
+historische_gewinnzahlen = [
+    {4, 15, 23, 36, 42, 48},  # Set für jede Ziehung
+    # Weitere Gewinnzahlen...
+]
+
+def ist_gewinnzahl(schein, historische_gewinnzahlen):
+    gezogene_zahlen = set(schein['zahlen'])
+    return any(gezogene_zahlen == gewinnzahlen for gewinnzahlen in historische_gewinnzahlen)

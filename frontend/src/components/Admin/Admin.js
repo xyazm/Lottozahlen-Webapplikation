@@ -1,16 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Button from '../Button/Button';
 import Plot from 'react-plotly.js';
+import { useSettings } from '../../hooks/useSettings';
+import { usePlot } from '../../hooks/usePlot';
 
 export default function Admin() {
-  const [anzahlLottoscheine, setAnzahlLottoscheine] = useState(2); // Setze einen Default-Wert für die Anzahl der Lottoscheine
-  const [feedbackEnabled, setFeedbackEnabled] = useState(false);
-  const [personalData, setPersonalData] = useState(false);
-  const [confirmationMessage, setConfirmationMessage] = useState(''); // State für die Bestätigungsmeldung
-  const API_URL = 'http://localhost:5000/settings';
+  const {
+    anzahlLottoscheine,
+    feedbackEnabled,
+    personalData,
+    setAnzahlLottoscheine,
+    setFeedbackEnabled,
+    setPersonalData,
+    saveSettings,
+  } = useSettings();
 
-  const [plotData, setPlotData] = useState(null);
-
+  const [confirmationMessage, setConfirmationMessage] = useState('');
 
   // Objekt für alle Einstellungen
   const settings = [
@@ -40,81 +45,19 @@ export default function Admin() {
     }
   ];
 
-  // Fetch settings from the API when the component mounts
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await fetch(API_URL);
-        const data = await response.json();
-        // Setze die erhaltenen Daten in den State
-        setAnzahlLottoscheine(data.anzahlLottoscheine || 2); 
-        setFeedbackEnabled(data.feedbackEnabled || false);
-        setPersonalData(data.personalData || false);
-      } catch (error) {
-        console.error('Error fetching settings:', error);
-      }
-    };
-
-    fetchSettings();
-  }, []); // Dieser Hook wird nur einmal beim ersten Rendern aufgerufen
-
-  useEffect(() => {
-    // Abrufen der Daten von der Flask-API
-    fetch('http://localhost:5000/haeufigkeit')
-      .then(response => response.json())
-      .then(data => {
-        // Extrahiere data und layout von der API-Antwort
-        if (data.plot_json) {
-          setPlotData({
-            data: data.plot_json.data,
-            layout: data.plot_json.layout,
-          });
-        }
-      });
-  }, []);
-
   // Handle form submission to update the number of lottery tickets and other settings
   const handleSubmit = async (e) => {
     e.preventDefault();
     const number = parseInt(anzahlLottoscheine, 10);
     if (!isNaN(number) && number > 0) {
-      await sendSettingsData(API_URL, number, feedbackEnabled, personalData);
-      setConfirmationMessage('Einstellungen erfolgreich gespeichert!'); // Setze Bestätigungsmeldung
-      // Optional: Setze die Bestätigungsmeldung nach 3 Sekunden zurück
-      setTimeout(() => {
-        setConfirmationMessage('');
-      }, 3000);
+      await saveSettings(number, feedbackEnabled, personalData);
+      setConfirmationMessage('Einstellungen erfolgreich gespeichert!');
+      setTimeout(() => setConfirmationMessage(''), 3000);
     }
   };
 
-  // Funktion zum Senden der aktualisierten Einstellungen an die API
-  async function sendSettingsData(apiUrl, number, feedback, personal) {
-    try {
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          anzahlLottoscheine: number,
-          feedbackEnabled: feedback,
-          personalData: personal,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data; // Hier kannst du weitere Aktionen durchführen, z.B. eine Bestätigung anzeigen
-    } catch (error) {
-      console.error('Error sending data:', error);
-    }
-  }
-
   return (
-    <div className="p-6 max-w-3xl mx-auto bg-white shadow-lg rounded-lg">
+    <div className="p-6 max-w-3xl mx-auto relative">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Willkommen Admin</h1>
 
       {/* Bestätigungsmeldung */}
@@ -127,12 +70,11 @@ export default function Admin() {
       {/* Einstellungen Section */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold text-rubBlue mb-4">Einstellungen</h2>
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {settings.map((setting, index) => (
             <Setting
               key={index}
-              id={setting.id}  // Übergib die eindeutige ID
+              id={setting.id}
               label={setting.label}
               value={setting.value}
               type={setting.type}
@@ -140,7 +82,6 @@ export default function Admin() {
               tooltip={setting.tooltip}
             />
           ))}
-
           {/* Submit Button */}
           <Button buttonId="savesettings-button" text="Einstellungen speichern" />
         </form>
@@ -150,32 +91,55 @@ export default function Admin() {
       <div className="mb-8">
         <h2 className="text-xl font-semibold text-rubBlue mb-4">Übersicht</h2>
 
-        {/* Abgegebene Lottoscheine */}
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">Abgegebene Lottoscheine:</h3>
-          <p className="text-gray-600">Abgegebene Lottoscheine werden hier angezeigt.</p>
-        </div>
-
         {/* Statistiken */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800">Statistiken:</h3>
-          <p className="text-gray-600">Statistiken werden hier angezeigt.</p>
-          {plotData ? (
-            <Plot
-              data={plotData.data}  // Daten für das Diagramm
-              layout={plotData.layout}  // Layout für das Diagramm
-              config={{ responsive: true }}  // Responsives Diagramm
-            />
-          ) : (
-            <p>Lade Diagramm...</p> 
-          )}
-        </div>
+        <Statistik 
+        />
       </div>
     </div>
   );
 }
 
-function Setting ({ id, label, value, onChange, type, tooltip }) {
+function Statistik() {
+  const { haeufigkeitPlot, gitterPlot } = usePlot();
+  return (
+    <div className="relative block items-center mb-4">
+      <h3 className="text-lg font-semibold text-gray-800">Statistiken:</h3>
+      <p className="text-gray-600">Statistiken werden hier angezeigt.</p>
+      <div className="w-full h-[400px]">
+      {/* Häufigkeit der Lottozahlen */}
+      {haeufigkeitPlot ? (
+          <>
+            <h2>Häufigkeit der Lottozahlen</h2>
+            <Plot
+              data={haeufigkeitPlot.data}
+              layout={haeufigkeitPlot.layout}
+              config={{ responsive: true }} // Für eine responsive Darstellung
+            />
+          </>
+        ) : (
+          <p>Lade Häufigkeit der Lottozahlen...</p>
+        )}
+      </div>
+      <div className="w-full h-[400px]">
+        {/* Scatterplot der Gitteranalyse */}
+        {gitterPlot ? (
+          <>
+            <h2>Verteilung der Lottozahlen im Gitter</h2>
+            <Plot
+              data={gitterPlot.data}
+              layout={gitterPlot.layout}
+              config={{ responsive: true }} // Für eine responsive Darstellung
+            />
+          </>
+        ) : (
+          <p>Lade Gitteranalyse...</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Setting({ id, label, value, onChange, type, tooltip }) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   const toggleTooltip = () => {
@@ -189,8 +153,6 @@ function Setting ({ id, label, value, onChange, type, tooltip }) {
     <div className="relative flex items-center mb-4">
       <label className="text-sm font-medium text-gray-700 w-2/3 flex items-center">
         {label}
-
-        {/* Fragezeichen für Tooltip */}
         {tooltip && (
           <button
             type="button"
@@ -201,15 +163,13 @@ function Setting ({ id, label, value, onChange, type, tooltip }) {
           </button>
         )}
 
-        {/* Tooltip für Erklärung */}
         {showTooltip && (
           <div className="absolute left-[100px] top-[-5px] z-[999] mt-2 p-2 bg-gray-900 text-white border border-gray-300 rounded shadow-lg transition-opacity duration-500 $animate-fade-in-out">
-          <span className="text-xs">{tooltip}</span> 
-        </div>
+            <span className="text-xs">{tooltip}</span>
+          </div>
         )}
       </label>
 
-      {/* Input-Feld oder Toggle */}
       <div className="w-1/3 flex items-center">
         {type === 'number' ? (
           <input
@@ -238,8 +198,7 @@ function Setting ({ id, label, value, onChange, type, tooltip }) {
             </span>
           </div>
         )}
-        {/* Hier einfügen weiterer Seeting-Optionen */}
       </div>
     </div>
   );
-};
+}
