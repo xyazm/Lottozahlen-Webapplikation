@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Lottoschein from '../Lottoschein/Lottoschein';
 import Admin from '../Admin/Admin';
@@ -27,6 +27,8 @@ export default function Body({ userType, isAuthenticated }) {
         <Route path="/contact" element={<Contact />} />
         <Route path="/datenschutz" element={<Datenschutz />} />
         <Route path="/impressum" element={<Impressum />} />
+        {/* Admin-Seite (jetzt ohne Authentifizierung) */}
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </div>
   </main>

@@ -1,6 +1,7 @@
 import React from 'react';
 
 const Home = () => {
+
   return (
     <div className='m-6'>
       <h1>Willkommen zu meiner Bachelorarbeit</h1>

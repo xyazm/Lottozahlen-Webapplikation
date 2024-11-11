@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Button from '../Button/Button';
-import { useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth'
 
 
@@ -10,7 +9,6 @@ export default function Login() {
   const [accessCode, setAccessCode] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [confirmationMessage, setConfirmationMessage] = useState(''); // Zustand für die Bestätigung
-  const navigate = useNavigate();
 
   const handleSendAccessCode = async (e) => {
     e.preventDefault(); 

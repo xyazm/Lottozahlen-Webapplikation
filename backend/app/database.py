@@ -68,10 +68,15 @@ def save_lottoschein_to_db(student_id, lottozahlen):
     db.session.add(new_schein)
     db.session.commit()
 
-def get_scheine_from_db(email):
-    """Holt die Benutzer-ID anhand der E-Mail-Adresse."""
-    student = Student.query.filter_by(email=email).first()
-    return student if student else None
+def get_lottoscheine_from_db():
+    """Holt alle Lottoscheine aus der Datenbank."""
+    scheine = Lottoscheine.query.all()
+    return scheine if scheine else None
+
+def get_lottoscheine_from_student_db(student_id):
+    """Holt alle Lottoscheine eines Studenten aus der Datenbank."""
+    scheine = Lottoscheine.query.filter_by(student_id=student_id).all()
+    return scheine if scheine else None
 
 def get_code_from_db(id):
     """Holt den Zugangscode aus der Datenbank."""

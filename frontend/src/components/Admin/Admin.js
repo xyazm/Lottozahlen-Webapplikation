@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Button from '../Button/Button';
+import Plot from 'react-plotly.js';
 
 export default function Admin() {
   const [anzahlLottoscheine, setAnzahlLottoscheine] = useState(2); // Setze einen Default-Wert für die Anzahl der Lottoscheine
@@ -7,6 +8,9 @@ export default function Admin() {
   const [personalData, setPersonalData] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState(''); // State für die Bestätigungsmeldung
   const API_URL = 'http://localhost:5000/settings';
+
+  const [plotData, setPlotData] = useState(null);
+
 
   // Objekt für alle Einstellungen
   const settings = [
@@ -53,6 +57,21 @@ export default function Admin() {
 
     fetchSettings();
   }, []); // Dieser Hook wird nur einmal beim ersten Rendern aufgerufen
+
+  useEffect(() => {
+    // Abrufen der Daten von der Flask-API
+    fetch('http://localhost:5000/haeufigkeit')
+      .then(response => response.json())
+      .then(data => {
+        // Extrahiere data und layout von der API-Antwort
+        if (data.plot_json) {
+          setPlotData({
+            data: data.plot_json.data,
+            layout: data.plot_json.layout,
+          });
+        }
+      });
+  }, []);
 
   // Handle form submission to update the number of lottery tickets and other settings
   const handleSubmit = async (e) => {
@@ -141,6 +160,15 @@ export default function Admin() {
         <div>
           <h3 className="text-lg font-semibold text-gray-800">Statistiken:</h3>
           <p className="text-gray-600">Statistiken werden hier angezeigt.</p>
+          {plotData ? (
+            <Plot
+              data={plotData.data}  // Daten für das Diagramm
+              layout={plotData.layout}  // Layout für das Diagramm
+              config={{ responsive: true }}  // Responsives Diagramm
+            />
+          ) : (
+            <p>Lade Diagramm...</p> 
+          )}
         </div>
       </div>
     </div>

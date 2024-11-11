@@ -1,5 +1,5 @@
 from flask_mail import Message
-from flask import current_app, request, jsonify
+from flask import current_app, request, jsonify, Blueprint
 
 mail_routes = Blueprint('mail', __name__)
 

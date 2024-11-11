@@ -9,6 +9,7 @@ from .settings import settings_routes
 from .jwt_helper import jwt, jwt_routes
 from .login import login_routes
 from .mail import mail_routes
+from .analysis import analysis_routes
 
 load_dotenv()  
 mail = Mail()
@@ -23,6 +24,7 @@ def create_app():
     app.register_blueprint(jwt_routes)
     app.register_blueprint(login_routes)
     app.register_blueprint(mail_routes)
+    app.register_blueprint(analysis_routes)
 
     # Initialisiere die SQLAlchemy-Datenbank mit der App
     db.init_app(app)  
