@@ -1,63 +1,20 @@
 import React, { useState } from 'react';
 import Button from '../Button/Button';
-import useAuth from '../../hooks/useAuth'
-
+import useAuth from '../../hooks/useAuth';
 
 export default function Login() {
-  const { login } = useAuth();
+  const { sendAccessCode, validateAccessCode, errorMessage, confirmationMessage } = useAuth();
   const [email, setEmail] = useState('');
   const [accessCode, setAccessCode] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [confirmationMessage, setConfirmationMessage] = useState(''); // Zustand für die Bestätigung
 
   const handleSendAccessCode = async (e) => {
-    e.preventDefault(); 
-    if (!email.endsWith('@rub.de')) {
-      setErrorMessage('Nur E-Mail-Adressen der RUB-Domäne (@rub.de) sind erlaubt.');
-      return;
-    }
-
-    try {
-      const response = await fetch('http://localhost:5000/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({email})
-    });
-
-    if (response.ok) {
-      setConfirmationMessage('Zugangscode wurde erfolgreich verschickt!');
-      setErrorMessage('');
-    } else {
-      setErrorMessage('Fehler beim Senden des Zugangscodes.');
-      setConfirmationMessage('');
-    }
-    } catch (error) {
-      setErrorMessage(error.message);
-      setConfirmationMessage('');
-    }
+    e.preventDefault();
+    await sendAccessCode(email);
   };
 
-  // Funktion, um den Login zu starten
   const handleLogin = async (e) => {
     e.preventDefault();
-    try {
-      const response = await fetch('http://localhost:5000/validate_code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, access_code: accessCode }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const token = data.access_token;
-        localStorage.setItem('token', token); // Speichere den Token im localStorage
-        login(); // Authentifizierung starten
-      } else {
-        setErrorMessage('Ungültiger Zugangscode oder E-Mail.');
-      }
-    } catch (error) {
-      setErrorMessage(error.message);
-    }
+    await validateAccessCode(email, accessCode);
   };
 
   return (
@@ -65,7 +22,7 @@ export default function Login() {
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
         <h2 className="text-left">Logge dich mit deinem RUB-Konto ein</h2>
         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-        {confirmationMessage && <p className="text-green-500">{confirmationMessage}</p>} {/* Bestätigungsnachricht */}
+        {confirmationMessage && <p className="text-green-500">{confirmationMessage}</p>}
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
@@ -98,7 +55,7 @@ export default function Login() {
               onChange={(e) => setAccessCode(e.target.value)}
               className="block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300"
             />
-            <Button buttonId="login-button" text="Login" onClick={handleLogin}/>
+            <Button buttonId="login-button" text="Login" onClick={handleLogin} />
           </div>
         </div>
       </div>
