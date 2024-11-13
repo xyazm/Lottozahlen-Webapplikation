@@ -24,6 +24,16 @@ class Lottoscheine(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     student = db.relationship('Student', backref='lottoscheine')
 
+class examples_Lottoscheine(db.Model):
+    __tablename__ = 'lottoscheine_examples'
+    id = db.Column(db.Integer, primary_key=True)
+    lottozahl1 = db.Column(db.Integer, nullable=False)
+    lottozahl2 = db.Column(db.Integer, nullable=False)
+    lottozahl3 = db.Column(db.Integer, nullable=False)
+    lottozahl4 = db.Column(db.Integer, nullable=False)
+    lottozahl5 = db.Column(db.Integer, nullable=False)
+    lottozahl6 = db.Column(db.Integer, nullable=False)
+
 class Settings(db.Model):
     __tablename__ = 'settings'
     id = db.Column(db.Integer, primary_key=True)
@@ -51,6 +61,10 @@ def get_student_from_db(email):
     student = Student.query.filter_by(email=email).first()
     return student if student else None
 
+def get_scheinexamples_from_db():
+    scheine = examples_Lottoscheine.query.all()
+    return scheine if scheine else None
+
 def save_lottoschein_to_db(student_id, lottozahlen):
     # Beispiel für Lottozahlen: [1, 5, 12, 23, 34, 45]
     if len(lottozahlen) != 6:
@@ -66,6 +80,19 @@ def save_lottoschein_to_db(student_id, lottozahlen):
         lottozahl6=lottozahlen[5]
     )
     db.session.add(new_schein)
+    db.session.commit()
+
+def save_lottoscheine_examples_to_db(lottoscheine_df):
+    for _, lottozahlen in lottoscheine_df.iterrows():
+        new_schein = examples_Lottoscheine(
+            lottozahl1=int(lottozahlen['Nummer_1']),
+            lottozahl2=int(lottozahlen['Nummer_2']),
+            lottozahl3=int(lottozahlen['Nummer_3']),
+            lottozahl4=int(lottozahlen['Nummer_4']),
+            lottozahl5=int(lottozahlen['Nummer_5']),
+            lottozahl6=int(lottozahlen['Nummer_6'])
+        )
+        db.session.add(new_schein)
     db.session.commit()
 
 def get_lottoscheine_from_db():

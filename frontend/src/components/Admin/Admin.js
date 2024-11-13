@@ -100,7 +100,7 @@ export default function Admin() {
 }
 
 function Statistik() {
-  const { haeufigkeitPlot, gitterPlot, primePlot } = usePlot();
+  const { haeufigkeitPlot, primePlot, gitterPlot, tester1, tester2 } = usePlot();
   return (
     <div className="relative block items-center mb-4">
       <h3 className="text-lg font-semibold text-gray-800">Statistiken:</h3>
@@ -121,7 +121,6 @@ function Statistik() {
         )}
       </div>
       <div className="w-full h-[400px]">
-        {/* Scatterplot der Gitteranalyse */}
         {primePlot ? (
           <>
             <h2>Primezahlen/Gerade ungerade Zahlen</h2>
@@ -136,10 +135,10 @@ function Statistik() {
         )}
       </div>
       <div className="w-full h-[400px]">
+      <h2>Verteilung der Lottozahlen im Gitter</h2>
         {/* Scatterplot der Gitteranalyse */}
         {gitterPlot ? (
           <>
-            <h2>Verteilung der Lottozahlen im Gitter</h2>
             <Plot
               data={gitterPlot.data}
               layout={gitterPlot.layout}
@@ -150,6 +149,35 @@ function Statistik() {
           <p>Lade Gitteranalyse...</p>
         )}
         </div>
+        <div className="w-full h-[400px]">
+      {/* Häufigkeit der Lottozahlen */}
+      {tester1 ? (
+          <>
+            <h2>Häufigkeit der Lottozahlen</h2>
+            <Plot
+              data={tester1.data}
+              layout={tester1.layout}
+              config={{ responsive: true }} // Für eine responsive Darstellung
+            />
+          </>
+        ) : (
+          <p>Lade Häufigkeit der Lottozahlen...</p>
+        )}
+      </div><div className="w-full h-[400px]">
+      {/* Häufigkeit der Lottozahlen */}
+      {tester2 ? (
+          <>
+            <h2>Häufigkeit der Lottozahlen</h2>
+            <Plot
+              data={tester2.data}
+              layout={tester2.layout}
+              config={{ responsive: true }} // Für eine responsive Darstellung
+            />
+          </>
+        ) : (
+          <p>Lade Häufigkeit der Lottozahlen...</p>
+        )}
+      </div>
     </div>
   );
 }
