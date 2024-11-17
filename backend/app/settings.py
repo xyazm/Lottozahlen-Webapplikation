@@ -1,3 +1,4 @@
+# app/settings.py
 from flask import Blueprint, request, jsonify
 from .database import *
 from .jwt_helper import *

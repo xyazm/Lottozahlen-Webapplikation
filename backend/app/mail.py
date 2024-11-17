@@ -1,3 +1,4 @@
+# app/mail.py
 from flask_mail import Message
 from flask import current_app, request, jsonify, Blueprint
 
