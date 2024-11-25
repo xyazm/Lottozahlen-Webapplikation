@@ -13,6 +13,8 @@ export default function Admin() {
     setFeedbackEnabled,
     setPersonalData,
     saveSettings,
+    handleUpdateLottoDatabase,
+    handleUpdateRandomLottoscheine,
   } = useSettings();
 
   const [confirmationMessage, setConfirmationMessage] = useState('');
@@ -45,13 +47,27 @@ export default function Admin() {
     }
   ];
 
+  const handleDBUpdate = async (e) => {
+    e.preventDefault();
+    const response = await handleUpdateLottoDatabase();
+    setConfirmationMessage(response.message);
+    setTimeout(() => setConfirmationMessage(''), 3000);
+  } ;
+
+  const handleRandomScheineUpdate = async (e) => {
+    e.preventDefault();
+    const response = await handleUpdateRandomLottoscheine();
+    setConfirmationMessage(response.message);
+    setTimeout(() => setConfirmationMessage(''), 3000);
+  } ;
+
   // Handle form submission to update the number of lottery tickets and other settings
   const handleSubmit = async (e) => {
     e.preventDefault();
     const number = parseInt(anzahlLottoscheine, 10);
     if (!isNaN(number) && number > 0) {
-      await saveSettings(number, feedbackEnabled, personalData);
-      setConfirmationMessage('Einstellungen erfolgreich gespeichert!');
+      const response = await saveSettings(number, feedbackEnabled, personalData);
+      setConfirmationMessage(response.message);
       setTimeout(() => setConfirmationMessage(''), 3000);
     }
   };
@@ -85,6 +101,14 @@ export default function Admin() {
           {/* Submit Button */}
           <Button buttonId="savesettings-button" text="Einstellungen speichern" />
         </form>
+         {/* Schaltfläche zur Aktualisierung der Datenbank */}
+         <h2 className="text-xl font-semibold text-rubBlue mb-4">Datenbank aktualisieren</h2>
+         <div className="space-y-6">
+         <DatabaseLottoscheine 
+            handleDBUpdate={handleDBUpdate} 
+            handleRandomScheineUpdate={handleRandomScheineUpdate}
+         />
+         </div>
       </div>
 
       {/* Übersicht Section */}
@@ -147,7 +171,44 @@ function CollapsiblePlot({ label, plotData, plotLayout }) {
   );
 }
 
-function Setting({ id, label, value, onChange, type, tooltip }) {
+function DatabaseLottoscheine({ handleDBUpdate, handleRandomScheineUpdate }) {
+  const actions = [
+    {
+      label: 'Lottozahlen-Historie aktualisieren:',
+      buttonText: 'Update',
+      onClick: handleDBUpdate,
+    },
+    {
+      label: 'Erstelle neue "Zufällige" Lottoscheine:',
+      buttonText: 'Generiere',
+      onClick: handleRandomScheineUpdate,
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {actions.map((action, index) => (
+        <div key={index} className="relative flex items-center mb-4">
+          {/* Beschriftung */}
+          <label className="text-sm font-medium text-gray-700 w-2/3 flex items-center">
+            {action.label}
+          </label>
+
+          {/* Schaltfläche */}
+          <div className="w-1/3 flex items-center">
+            <Button
+              buttonId={`action-button-${index}`}
+              text={action.buttonText}
+              onClick={action.onClick}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Setting({ id, label, value, onChange, type, tooltip}) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   const toggleTooltip = () => {

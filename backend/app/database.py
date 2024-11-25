@@ -34,6 +34,17 @@ class examples_Lottoscheine(db.Model):
     lottozahl5 = db.Column(db.Integer, nullable=False)
     lottozahl6 = db.Column(db.Integer, nullable=False)
 
+class LottoHistoric(db.Model):
+    __tablename__ = 'lotto_historic'
+    id = db.Column(db.Integer, primary_key=True)
+    ziehungsdatum = db.Column(db.Date, nullable=False)
+    lottozahl1 = db.Column(db.Integer, nullable=False)
+    lottozahl2 = db.Column(db.Integer, nullable=False)
+    lottozahl3 = db.Column(db.Integer, nullable=False)
+    lottozahl4 = db.Column(db.Integer, nullable=False)
+    lottozahl5 = db.Column(db.Integer, nullable=False)
+    lottozahl6 = db.Column(db.Integer, nullable=False)
+
 class Settings(db.Model):
     __tablename__ = 'settings'
     id = db.Column(db.Integer, primary_key=True)
@@ -94,6 +105,35 @@ def save_lottoscheine_examples_to_db(lottoscheine_df):
         )
         db.session.add(new_schein)
     db.session.commit()
+
+def save_lottohistoric_to_db(lottoscheine_df):
+    for entry in lottoscheine_df:
+        print(entry)
+        ziehungsdatum = datetime.strptime(entry['date'], '%d.%m.%Y').date()
+
+        # Prüfen, ob der Eintrag bereits existiert
+        exists = db.session.query(LottoHistoric).filter_by(ziehungsdatum=ziehungsdatum).first()
+        if exists:
+            continue
+
+        # Neuen Eintrag hinzufügen
+        new_schein = LottoHistoric(
+            id=entry['id'],
+            ziehungsdatum=ziehungsdatum,
+            lottozahl1=entry['Lottozahl'][0],
+            lottozahl2=entry['Lottozahl'][1],
+            lottozahl3=entry['Lottozahl'][2],
+            lottozahl4=entry['Lottozahl'][3],
+            lottozahl5=entry['Lottozahl'][4],
+            lottozahl6=entry['Lottozahl'][5],
+        )
+        db.session.add(new_schein)
+    db.session.commit()
+
+def get_latest_lottohistoric_from_db():
+    """Holt die neuesten Lottozahlen aus der Datenbank."""
+    lottohistoric = LottoHistoric.query.order_by(LottoHistoric.ziehungsdatum.desc()).first()
+    return lottohistoric.ziehungsdatum if lottohistoric else None
 
 def get_lottoscheine_from_db():
     """Holt alle Lottoscheine aus der Datenbank."""
