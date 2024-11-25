@@ -1,53 +1,63 @@
 import pandas as pd
-import plotly.express as px
 import json
-import numpy as np
+import plotly.express as px
 from sympy import primerange
-from . import analysis_routes
 from flask import jsonify
+from . import analysis_routes
 from ..database import get_scheinexamples_from_db
 
-@analysis_routes.route('/zahlenanalyse')
-def zahlenanalyse():
+@analysis_routes.route('/primzahlenanalyse')
+def primzahlenanalyse():
     try:
-        plot_data = primzahlen()
-        return jsonify({'zahlenanalyse_plot': plot_data})
+        plot_data = analyse_primzahlen_pro_schein()
+        return jsonify({'primzahlenanalyse_plot': plot_data})
     except Exception as e:
         print(f"Fehler in der Zahlenanalyse: {e}")
         return jsonify({'error': str(e)}), 500
 
-def primzahlen():
+def analyse_primzahlen_pro_schein():
+    # Lottoscheine aus der Datenbank abrufen
     scheine = get_scheinexamples_from_db()
-    zahlen = [zahl for schein in scheine for zahl in [
-        schein.lottozahl1, schein.lottozahl2, schein.lottozahl3,
-        schein.lottozahl4, schein.lottozahl5, schein.lottozahl6
-    ]]
+    
+    # Liste der Primzahlen im Bereich 1 bis 49
+    primzahlen_set = set(primerange(1, 50))
+    
+    # Berechnung der Anzahl der Primzahlen pro Schein
+    anzahl_primzahlen_pro_schein = []
+    for schein in scheine:
+        zahlen = [
+            schein.lottozahl1, schein.lottozahl2, schein.lottozahl3,
+            schein.lottozahl4, schein.lottozahl5, schein.lottozahl6
+        ]
+        # Zähle, wie viele Zahlen im Schein Primzahlen sind
+        primzahlen_count = sum(1 for zahl in zahlen if zahl in primzahlen_set)
+        anzahl_primzahlen_pro_schein.append(primzahlen_count)
+    
+    # Verteilung der Primzahlenanzahl berechnen
+    verteilung = pd.Series(anzahl_primzahlen_pro_schein).value_counts().sort_index()
+    x_achse = range(0, 7)  # Werte von 0 bis 6
+    df = pd.DataFrame({
+        'Anzahl_Primzahlen': x_achse,
+        'Häufigkeit': [verteilung.get(x, 0) for x in x_achse]
+    })
 
-    zahlen_array = np.array(zahlen)
-    primzahlen_set = set(primerange(1, 51))
 
-    primzahlen_count = np.isin(zahlen_array, list(primzahlen_set)).sum()
-    gerade_count = (zahlen_array % 2 == 0).sum()
-    ungerade_count = (zahlen_array % 2 == 1).sum()
-
-    total_count = len(zahlen)
-    daten = {
-        'Kategorie': ['Primzahlen', 'Gerade Zahlen', 'Ungerade Zahlen'],
-        'Anzahl': [primzahlen_count, gerade_count, ungerade_count],
-        'Prozent': [100 * primzahlen_count / total_count, 
-                    100 * gerade_count / total_count, 
-                    100 * ungerade_count / total_count]
-    }
-
-    df = pd.DataFrame(daten)
-
+    # Visualisierung mit Plotly
     fig = px.bar(
-        df, 
-        x='Kategorie', 
-        y=['Anzahl', 'Prozent'], 
-        title="Häufigkeit und prozentuale Verteilung der Prim-, Geraden und Ungeraden Zahlen",
-        labels={'value': 'Häufigkeit', 'variable': 'Metrik'}, 
-        barmode='stack'
+        df,
+        x='Anzahl_Primzahlen',
+        y='Häufigkeit',
+        title='Verteilung der Anzahl der Primzahlen in Lottoscheinen',
+        labels={'Anzahl_Primzahlen': 'Anzahl der Primzahlen', 'Häufigkeit': 'Häufigkeit'},
+        text='Häufigkeit'
+    )
+    fig.update_traces(textposition='outside')
+    fig.update_layout(
+        xaxis=dict(tickmode='linear', tick0=0, dtick=1),
+        yaxis_title='Häufigkeit',
+        xaxis_title='Anzahl der Primzahlen pro Schein',
+        title_x=0.5
     )
 
+    # Rückgabe der Plotly-Figur als JSON
     return json.loads(fig.to_json())

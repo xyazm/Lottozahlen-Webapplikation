@@ -1,46 +1,34 @@
 import { useState, useEffect } from 'react';
 
+// Universelle Hook zum Laden der Analysen
 export function usePlot() {
-    const [haeufigkeitPlot, setHaeufigkeitPlot] = useState(null);
-    const [gitterPlot, setGitterPlot] = useState(null);
-    const [primePlot, setPrimePlot] = useState(null);
-    const [tester1, settester1] = useState(false);
-    const [tester2, settester2] = useState('');
-    
-  
-    useEffect(() => {
-        // Abruf der Häufigkeit der Lottozahlen
-        fetch('http://localhost:5000/haeufigkeit')
-          .then(response => response.json())
-          .then(data => {
-            if (data) {
-              setHaeufigkeitPlot(data.haeufigkeit_plot);
-              //settester1(data.heatmap_plot);
-              settester2(data.scatter_plot);
-            }
-          })
-          .catch(error => console.error('Error fetching Häufigkeit data:', error));
+  const [plots, setPlots] = useState({}); // Dynamisches Objekt, das alle Plots enthält
+  const apiURL = 'http://localhost:5000'; // URL des Backends
 
-        // Abruf der Prime-Analyse
-        fetch('http://localhost:5000/zahlenanalyse')
-          .then(response => response.json())
-          .then(data => {
-            if (data && data.zahlenanalyse_plot) {
-              setPrimePlot(data.zahlenanalyse_plot);
-            }
-          })
-          .catch(error => console.error('Error fetching Zahlenanalyse data:', error));
+  const analyses = [
+    { key: 'haeufigkeit', url: `${apiURL}/haeufigkeit`, label: 'Häufigkeit der Lottozahlen' },
+    { key: 'primzahlenanalyse', url: `${apiURL}/primzahlenanalyse`, label: 'Anzahl Primezahlen pro Schein' },
+    { key: 'gitteranalyse', url: `${apiURL}/gitteranalyse`, label: 'Verteilung der Lottozahlen im Gitter' },
+    { key: 'verteilungsanalyse', url: `${apiURL}/verteilungsanalyse`, label: 'Verteilung und Distanz' },
+    { key: 'aufeinanderfolgende_reihen', url: `${apiURL}/aufeinanderfolgende_reihen`, label: 'Aufeinanderfolgende Reihen' },
+    { key: 'diagonaleanalyse', url: `${apiURL}/diagonaleanalyse`, label: 'Verteilung auf Diagonale' },
+    { key: 'ungeradeanalyse', url: `${apiURL}/ungeradeanalyse`, label: 'Kombination aus Gerade und Ungerade Zahlen' },
+    { key: 'summenanalyse', url: `${apiURL}/summenanalyse`, label: 'Summenwert von Lottozahlen' },
+    { key: 'kleingrossanalyse', url: `${apiURL}/kleingrossanalyse`, label: 'Kombination aus kleinen und großen Zahlen' },
+  ];
 
-        // Abruf der Gitteranalyse
-        fetch('http://localhost:5000/gitteranalyse')
-        .then(response => response.json())
-        .then(data => {
+  useEffect(() => {
+    analyses.forEach(({ key, url }) => {
+      fetch(url)
+        .then((response) => response.json())
+        .then((data) => {
           if (data) {
-            setGitterPlot(data.gitterplot);
+            setPlots((prevPlots) => ({ ...prevPlots, [key]: data[`${key}_plot`] }));
           }
         })
-        .catch(error => console.error('Error fetching Gitteranalyse data:', error));
-      }, []);
-  
-    return { haeufigkeitPlot, primePlot, gitterPlot, tester1, tester2 };
+        .catch((error) => console.error(`Error fetching data for ${key}:`, error));
+    });
+  }, []);
+
+  return { plots, analyses };
 }

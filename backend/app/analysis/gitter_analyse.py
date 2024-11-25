@@ -10,7 +10,7 @@ from ..database import get_scheinexamples_from_db
 def gitteranalyse():
     try:
         plot_json = get_gitteranalyse()
-        return jsonify({'gitterplot': plot_json})
+        return jsonify({'gitteranalyse_plot': plot_json})
     except Exception as e:
         print(f"Fehler in der Gitteranalyse: {e}")
         return jsonify({'error': str(e)}), 500
