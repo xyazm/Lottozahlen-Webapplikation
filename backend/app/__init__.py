@@ -11,6 +11,7 @@ from .jwt_helper import jwt, jwt_routes
 from .login import login_routes
 from .mail import mail_routes
 from .analysis import analysis_routes
+from .lottonumbers import lotto_db
 
 load_dotenv()  
 mail = Mail()
@@ -26,6 +27,7 @@ def create_app():
     app.register_blueprint(login_routes)
     app.register_blueprint(mail_routes)
     app.register_blueprint(analysis_routes)
+    app.register_blueprint(lotto_db)
 
     app.config['CACHE_TYPE'] = 'SimpleCache'  # Beispiel: In-memory Cache
     app.config['CACHE_DEFAULT_TIMEOUT'] = 300

@@ -7,6 +7,38 @@ export function useSettings() {
   const [feedbackEnabled, setFeedbackEnabled] = useState(false);
   const [personalData, setPersonalData] = useState(false);
 
+  const handleUpdateLottoDatabase = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/update-lotto', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      return data = await response.json();
+    } catch (error) {
+      console.error('Error updating database:', error);
+    }
+  };
+
+
+  const handleUpdateRandomLottoscheine = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/generate-lotto-tickets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error updating database:', error);
+    }
+  };
+
   // Fetch settings from the API when the component mounts
   useEffect(() => {
     const fetchSettings = async () => {
@@ -42,6 +74,8 @@ export function useSettings() {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
+      const data = await response.json();
+      return data;
     } catch (error) {
       console.error('Error sending settings:', error);
     }
@@ -55,5 +89,7 @@ export function useSettings() {
     setFeedbackEnabled,
     setPersonalData,
     saveSettings,
+    handleUpdateLottoDatabase,
+    handleUpdateRandomLottoscheine,
   };
 }
