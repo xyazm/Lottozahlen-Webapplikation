@@ -10,7 +10,7 @@ from ..database import get_scheinexamples_from_db
 def lotto_haeufigkeit():
     try:
         scatter_json = get_lottozahlen_haeufigkeit()
-        return jsonify({'scatter_plot': scatter_json})
+        return jsonify({'haeufigkeit_plot': scatter_json})
     except Exception as e:
         print(f"Fehler in der Häufigkeitsanalyse: {e}")
         return jsonify({'error': str(e)}), 500

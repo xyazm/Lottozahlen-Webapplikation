@@ -92,92 +92,57 @@ export default function Admin() {
         <h2 className="text-xl font-semibold text-rubBlue mb-4">Übersicht</h2>
 
         {/* Statistiken */}
-        <Statistik 
-        />
+        <Statistik />
       </div>
     </div>
   );
 }
 
 function Statistik() {
-  const { haeufigkeitPlot, primePlot, gitterPlot, tester1, tester2 } = usePlot();
+  const { plots, analyses } = usePlot();
+
   return (
     <div className="relative block items-center mb-4">
       <h3 className="text-lg font-semibold text-gray-800">Statistiken:</h3>
       <p className="text-gray-600">Statistiken werden hier angezeigt.</p>
-      <div className="w-full h-[400px]">
-      {/* Häufigkeit der Lottozahlen */}
-      {haeufigkeitPlot ? (
-          <>
-            <h2>Häufigkeit der Lottozahlen</h2>
+      {analyses.map(({ key, label }) => (
+        <CollapsiblePlot
+          key={key}
+          label={label}
+          plotData={plots[key]?.data}
+          plotLayout={plots[key]?.layout}
+        />
+      ))}
+    </div>
+  );
+}
+
+function CollapsiblePlot({ label, plotData, plotLayout }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleOpen = () => setIsOpen((prev) => !prev);
+
+  return (
+    <div className="w-full mb-4">
+      <button
+        className="w-full text-left py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-md shadow"
+        onClick={toggleOpen}
+      >
+        {isOpen ? `▼ ${label}` : `► ${label}`}
+      </button>
+      {isOpen && (
+        <div className="mt-2">
+          {plotData ? (
             <Plot
-              data={haeufigkeitPlot.data}
-              layout={haeufigkeitPlot.layout}
-              config={{ responsive: true }} // Für eine responsive Darstellung
+              data={plotData}
+              layout={plotLayout}
+              config={{ responsive: true }}
             />
-          </>
-        ) : (
-          <p>Lade Häufigkeit der Lottozahlen...</p>
-        )}
-      </div>
-      <div className="w-full h-[400px]">
-        {primePlot ? (
-          <>
-            <h2>Primezahlen/Gerade ungerade Zahlen</h2>
-            <Plot
-              data={primePlot.data}
-              layout={primePlot.layout}
-              config={{ responsive: true }} // Für eine responsive Darstellung
-            />
-          </>
-        ) : (
-          <p>Lade zahlenanalyse...</p>
-        )}
-      </div>
-      <div className="w-full h-[400px]">
-      <h2>Verteilung der Lottozahlen im Gitter</h2>
-        {/* Scatterplot der Gitteranalyse */}
-        {gitterPlot ? (
-          <>
-            <Plot
-              data={gitterPlot.data}
-              layout={gitterPlot.layout}
-              config={{ responsive: true }} // Für eine responsive Darstellung
-            />
-          </>
-        ) : (
-          <p>Lade Gitteranalyse...</p>
-        )}
+          ) : (
+            <p>Lade {label}...</p>
+          )}
         </div>
-        <div className="w-full h-[400px]">
-      {/* Häufigkeit der Lottozahlen */}
-      {tester1 ? (
-          <>
-            <h2>Häufigkeit der Lottozahlen</h2>
-            <Plot
-              data={tester1.data}
-              layout={tester1.layout}
-              config={{ responsive: true }} // Für eine responsive Darstellung
-            />
-          </>
-        ) : (
-          <p>Lade Häufigkeit der Lottozahlen...</p>
-        )}
-      </div><div className="w-full h-[400px]">
-      {/* Häufigkeit der Lottozahlen */}
-      {tester2 ? (
-          <>
-            <h2>Häufigkeit der Lottozahlen</h2>
-            <Plot
-              data={tester2.data}
-              layout={tester2.layout}
-              config={{ responsive: true }} // Für eine responsive Darstellung
-            />
-          </>
-        ) : (
-          <p>Lade Häufigkeit der Lottozahlen...</p>
-        )}
-      </div>
+      )}
     </div>
   );
 }

@@ -27,6 +27,9 @@ def create_app():
     app.register_blueprint(mail_routes)
     app.register_blueprint(analysis_routes)
 
+    app.config['CACHE_TYPE'] = 'SimpleCache'  # Beispiel: In-memory Cache
+    app.config['CACHE_DEFAULT_TIMEOUT'] = 300
+
     # Initialisiere die SQLAlchemy-Datenbank mit der App
     db.init_app(app)  
     mail.init_app(app)  # Initialisiere das Mail-Objekt mit der App
