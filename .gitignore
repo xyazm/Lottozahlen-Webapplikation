@@ -1,0 +1,59 @@
+# Global ignores for the project
+
+# === Backend-specific ignores ===
+# Ignore virtual environments
+venv/
+env/
+.venv/
+
+# Ignore environment files
+.env
+.env/
+
+# Ignore __pycache__ directories
+**/__pycache__/
+
+# Ignore models folder in backend/ai
+backend/ai/models/
+
+# Ignore log files
+*.log
+
+# Ignore SQLite databases
+*.sqlite3
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore VSCode settings
+.vscode/
+
+# Ignore macOS specific files
+.DS_Store
+
+# SSL keys
+informatik.rub.de.key
+informatik_ruhr-uni-bochum_de_cert.cer
+
+
+# === Frontend-specific ignores ===
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# testing
+coverage/
+
+# production
+build/
+
+# misc
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
