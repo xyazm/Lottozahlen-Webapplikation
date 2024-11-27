@@ -1,0 +1,6 @@
+[submodule "backend/app/lottonumbers/LottoNumberArchive"]
+	path = backend/app/lottonumbers/LottoNumberArchive
+	url = https://github.com/JohannesFriedrich/LottoNumberArchive.git
+[submodule "backend/ai/llama.cpp"]
+	path = backend/ai/llama.cpp
+	url = https://github.com/ggerganov/llama.cpp.git
