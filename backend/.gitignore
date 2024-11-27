@@ -11,6 +11,10 @@ env/
 __pycache__/
 /__pycache__
 
+# Ignore models
+/models
+models/
+
 # Ignore log files
 *.log
 
