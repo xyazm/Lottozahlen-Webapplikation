@@ -50,14 +50,22 @@ export default function Admin() {
   const handleDBUpdate = async (e) => {
     e.preventDefault();
     const response = await handleUpdateLottoDatabase();
-    setConfirmationMessage(response.message);
+    if (response.status === 'success') {
+      setConfirmationMessage(response.message);
+    } else {
+      setConfirmationMessage(`Fehler: ${response.message}`);
+    }
     setTimeout(() => setConfirmationMessage(''), 3000);
   } ;
 
   const handleRandomScheineUpdate = async (e) => {
     e.preventDefault();
     const response = await handleUpdateRandomLottoscheine();
-    setConfirmationMessage(response.message);
+    if (response.status === 'success') {
+      setConfirmationMessage(response.message);
+    } else {
+      setConfirmationMessage(`Fehler: ${response.message}`);
+    }
     setTimeout(() => setConfirmationMessage(''), 3000);
   } ;
 

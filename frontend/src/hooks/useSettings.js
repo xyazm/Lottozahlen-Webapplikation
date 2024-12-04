@@ -16,9 +16,11 @@ export function useSettings() {
         },
       });
 
-      return data = await response.json();
+    const data = await response.json();
+      return data;
     } catch (error) {
       console.error('Error updating database:', error);
+      return { status: 'error', message: 'Fehler beim Aktualisieren der Lotto-Datenbank!' };
     }
   };
 
@@ -36,6 +38,7 @@ export function useSettings() {
       return data;
     } catch (error) {
       console.error('Error updating database:', error);
+      return { status: 'error', message: 'Fehler beim Aktualisieren der Lotto-Datenbank!' };
     }
   };
 
