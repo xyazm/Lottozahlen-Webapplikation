@@ -6,6 +6,7 @@ import { ReactComponent as WarningIcon } from '../../assets/warning.svg';
 import { ReactComponent as KleeblattIcon } from '../../assets/kleeblatt.svg';
 import { useLottoschein } from '../../hooks/useLottoschein';
 import ConfirmationMessage from '../../components/ConfirmationMessage';
+import { useFeedback } from '../../hooks/useFeedback';
 
 export default function Lottoschein() {
   const { 
@@ -18,8 +19,14 @@ export default function Lottoschein() {
     handleSaveScheine 
   } = useLottoschein();
 
+  const { 
+    feedback, 
+    isLoading, 
+    error, 
+    generateFeedback 
+  } = useFeedback();
+
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [feedback, setFeedback] = useState(''); //noch aus db ziehen
   const [confirmationMessage, setConfirmationMessage] = useState('');
   const [messageType, setMessageType] = useState('');
 
@@ -30,8 +37,13 @@ export default function Lottoschein() {
 
   const handleSubmit = async () => {
     const response = await handleSaveScheine();
+    const scheinData = scheine.map((schein) => ({
+      numbers: schein.getSelectedNumbers(),
+    }));
+    await generateFeedback(scheinData); 
     if (response.status=="success") {
       setIsSubmitted(true);
+      await generateFeedback(scheinData); 
     }
     else {
       setTimeout(() => setConfirmationMessage(''), 3000);
@@ -61,10 +73,11 @@ export default function Lottoschein() {
         buttonId="save-lottoscheine" 
         text="Lottoscheine abgeben"  
         onClick={!isSubmitted ? handleSubmit : null}
-        disabled={isSubmitted}
+        //disabled={isSubmitted}
       />
       {isSubmitted && (
         <div className="mt-4">
+          {isLoading ? 'Analysieren...' : null}
           <textarea
             className="w-full p-2 border rounded mt-2"
             value={feedback}

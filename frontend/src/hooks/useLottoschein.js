@@ -30,13 +30,15 @@ export function useLottoschein() {
   const [alertPosition, setAlertPosition] = useState({ x: 0, y: 0 });
   const [anzahl, setAnzahl] = useState(0);
   const [scheine, setScheine] = useState([]);
+  const [useFeedback, setUseFeedback] = useState(true);
 
   useEffect(() => {
     fetch('http://localhost:5000/get-lottoschein-settings')
       .then(response => response.json())
       .then(data => {
         if (data && !data.error) {
-          setAnzahl(data);
+          setAnzahl(data.anzahl);
+          setUseFeedback(data.feedback)
         }
       })
       .catch(error => console.error('Fehler beim Abrufen der Einstellungen:', error));
