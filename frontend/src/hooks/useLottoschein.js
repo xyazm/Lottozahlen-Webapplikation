@@ -73,21 +73,30 @@ export function useLottoschein() {
     return true;
   };
 
-  const handleSaveScheine = () => {
+  const handleSaveScheine = async() => {
     if (validateScheine()) {
       const token = localStorage.getItem('token');
       const scheinData = scheine.map(schein => ({
         numbers: schein.getSelectedNumbers()
       }));
-      fetch('http://localhost:5000/save-lottoscheine', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ scheine: scheinData })
-      }).catch(error => console.error('Fehler beim Speichern der Lottoscheine:', error));
+      try {
+        const response = await fetch('http://localhost:5000/save-lottoscheine', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ scheine: scheinData }),
+        });
+  
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Fehler beim Speichern der Lottoscheine:', error);
+        return { status: 'error', message: error.message};
+      }
     }
+    return { status: 'error', message: "Etwas ist schief gelaufen."};
   };
 
   return {

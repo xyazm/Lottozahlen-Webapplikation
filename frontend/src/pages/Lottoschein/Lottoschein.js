@@ -5,6 +5,7 @@ import { ReactComponent as CrossHandwrittenIcon } from '../../assets/handwritten
 import { ReactComponent as WarningIcon } from '../../assets/warning.svg';
 import { ReactComponent as KleeblattIcon } from '../../assets/kleeblatt.svg';
 import { useLottoschein } from '../../hooks/useLottoschein';
+import ConfirmationMessage from '../../components/ConfirmationMessage';
 
 export default function Lottoschein() {
   const { 
@@ -17,17 +18,61 @@ export default function Lottoschein() {
     handleSaveScheine 
   } = useLottoschein();
 
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [feedback, setFeedback] = useState(''); //noch aus db ziehen
+  const [confirmationMessage, setConfirmationMessage] = useState('');
+  const [messageType, setMessageType] = useState('');
+
   const trackMousePosition = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     setAlertPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
 
+  const handleSubmit = async () => {
+    const response = await handleSaveScheine();
+    if (response.status=="success") {
+      setIsSubmitted(true);
+    }
+    else {
+      setTimeout(() => setConfirmationMessage(''), 3000);
+    }
+    setConfirmationMessage(response.message);
+    setMessageType(response.status);
+  };
+
   return (
     <div className="relative" onMouseMove={trackMousePosition}>
-      <Alert showAlert={showAlert} alertPosition={alertPosition} message={alertMessage} />
+      <Alert 
+        showAlert={showAlert} 
+        alertPosition={alertPosition} 
+        message={alertMessage} 
+        />
+      <ConfirmationMessage
+        message={confirmationMessage}
+        type={messageType}
+      />
       <LottoscheinHeader />
-      <LottoscheineGrid scheine={scheine} handleToggleNumber={handleToggleNumber} />
-      <Button buttonId="save-lottoscheine" text="Lottoscheine abgeben" onClick={handleSaveScheine} />
+      <LottoscheineGrid 
+        scheine={scheine} 
+        handleToggleNumber={!isSubmitted ? handleToggleNumber : null} 
+        isSubmitted={isSubmitted}
+      />
+      <Button 
+        buttonId="save-lottoscheine" 
+        text="Lottoscheine abgeben"  
+        onClick={!isSubmitted ? handleSubmit : null}
+        disabled={isSubmitted}
+      />
+      {isSubmitted && (
+        <div className="mt-4">
+          <textarea
+            className="w-full p-2 border rounded mt-2"
+            value={feedback}
+            disabled
+            rows="10"
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -48,7 +93,7 @@ function LottoscheinHeader() {
   );
 }
 
-function LottoscheineGrid({ scheine, handleToggleNumber }) {
+function LottoscheineGrid({ scheine, handleToggleNumber, isSubmitted }) {
   return (
     <div id="lottoscheine-grid" className="flex flex-wrap items-start justify-items-center gap-4">
       {scheine.map((schein, i) => (
@@ -58,7 +103,7 @@ function LottoscheineGrid({ scheine, handleToggleNumber }) {
               <div 
               key={`${j}-${k}`} 
               className="group relative border bg-white border-rubGreen text-rubGreen p-1 flex items-center justify-center z-[-1]"
-               onClick={() => handleToggleNumber(num, schein.index)}>
+               onClick={!isSubmitted ? () => handleToggleNumber(num, schein.index) : null}>
                 {num}
                 <div className={`absolute bottom-1 right-1 z-3 transform ${schein.getSelectedNumbers().includes(num) ? 'opacity-100' : 'group-hover:opacity-50 opacity-0'}`}>
                   <CrossHandwrittenIcon className='fill-black w-4' />
