@@ -12,6 +12,7 @@ from .login import login_routes
 from .mail import mail_routes
 from .analysis import analysis_routes
 from .lottonumbers import lotto_db
+from .ai import feedback_routes
 
 load_dotenv()  
 mail = Mail()
@@ -28,6 +29,7 @@ def create_app():
     app.register_blueprint(mail_routes)
     app.register_blueprint(analysis_routes)
     app.register_blueprint(lotto_db)
+    app.register_blueprint(feedback_routes)
 
     app.config['CACHE_TYPE'] = 'SimpleCache'  # Beispiel: In-memory Cache
     app.config['CACHE_DEFAULT_TIMEOUT'] = 300

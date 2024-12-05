@@ -13,3 +13,4 @@ class Config:
     MAIL_DEFAULT_SENDER = 'noreply@rub.com'
     SECRET_KEY = os.getenv('SECRET_KEY')
     JWT_SECRET = os.getenv('JWT_SECRET')
+    GROQ_API_KEY = os.getenv('GROQ_API_KEY')

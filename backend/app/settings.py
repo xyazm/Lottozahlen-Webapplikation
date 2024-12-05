@@ -10,7 +10,7 @@ settings_routes = Blueprint('settings', __name__)
 def get_lottoschein_settings():
     settings = load_settings()
     if settings:
-        return jsonify(settings.anzahlLottoscheine), 200
+        return jsonify({'anzahl': settings.anzahlLottoscheine, 'feedback' : settings.feedbackEnabled }), 200
     else:
         return jsonify({'error': 'Keine Einstellungen gefunden.'}), 404
     
