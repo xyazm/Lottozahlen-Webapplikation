@@ -22,13 +22,13 @@ def save_lottoschein():
     scheine = data.get('scheine')  
 
     if not scheine:
-        return jsonify({'error': 'Keine gültigen Scheine erhalten.'}), 400
+        return jsonify({'status': 'error', 'message': 'Keine gültigen Scheine erhalten.'}), 400
 
     # Jeden Schein für den Benutzer speichern
     for schein in scheine:
         lottoschein = schein.get('numbers')
         if not lottoschein or len(lottoschein) != 6: 
-            return jsonify({'error': 'Jeder Lottoschein muss genau 6 Zahlen enthalten.'}), 400
+            return jsonify({'status': 'error', 'message':'Jeder Lottoschein muss genau 6 Zahlen enthalten.'}), 400
         
         save_lottoschein_to_db(student_id=student_id, lottozahlen=lottoschein)
 
