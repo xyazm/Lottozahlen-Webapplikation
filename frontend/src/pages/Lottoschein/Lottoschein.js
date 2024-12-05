@@ -7,6 +7,7 @@ import { ReactComponent as KleeblattIcon } from '../../assets/kleeblatt.svg';
 import { useLottoschein } from '../../hooks/useLottoschein';
 import ConfirmationMessage from '../../components/ConfirmationMessage';
 import { useFeedback } from '../../hooks/useFeedback';
+import { useFeedback } from '../../hooks/useFeedback';
 
 export default function Lottoschein() {
   const { 
