@@ -1,12 +1,12 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Lottoschein from '../Lottoschein/Lottoschein';
-import Admin from '../Admin/Admin';
-import Login from '../Login/Login'; 
-import Home from '../../pages/Home';  // Importiere die Startseite
-import Contact from '../../pages/Contact'; 
-import Datenschutz from '../../pages/Datenschutz';  // Importiere die Datenschutzseite
-import Impressum from '../../pages/Impressum';  // Importiere die Impressumseite
+import Lottoschein from '../pages/Lottoschein/Lottoschein';
+import Admin from '../pages/Admin';
+import Login from '../pages/Login'; 
+import Home from '../pages/Home';  // Importiere die Startseite
+import Contact from '../pages/Contact'; 
+import Datenschutz from '../pages/Datenschutz';  // Importiere die Datenschutzseite
+import Impressum from '../pages/Impressum';  // Importiere die Impressumseite
 
 export default function Body({ userType, isAuthenticated }) {
 

@@ -30,9 +30,9 @@ def student_login():
 
         db.session.commit()
         send_access_code(email, access_code)  # E-Mail senden
-        return jsonify({'message': 'Zugangscode wurde gesendet.'}), 200
+        return jsonify({'status': 'success', 'message': 'Zugangscode wurde gesendet.'}), 200
     else:
-        return jsonify({'error': 'Nur E-Mail-Adressen der RUB sind erlaubt.'}), 400
+        return jsonify({'status': 'error', 'message': 'Nur E-Mail-Adressen der RUB sind erlaubt.'}), 400
 
 @login_routes.route('/validate_code', methods=['POST'])
 def validate_access_code():
@@ -44,15 +44,15 @@ def validate_access_code():
     if access_record and access_record.code == submitted_code:
         # Überprüfen, ob der Zugangscode abgelaufen ist
         if dt.utcnow() > access_record.expires_at:
-            return jsonify({'error': 'Zugangscode ist abgelaufen.'}), 401
+            return jsonify({'status': 'error', 'message': 'Zugangscode ist abgelaufen.'}), 401
         
         db.session.delete(access_record)
         db.session.commit()
 
         access_token = create_jwt_token(student.id)
-        return jsonify({'message': 'Login erfolgreich!','access_token': access_token}), 200
+        return jsonify({'status': 'success', 'message': 'Login erfolgreich!','access_token': access_token}), 200
     else:
-        return jsonify({'error': 'Ungültiger Zugangscode.'}), 401
+        return jsonify({'status': 'error', 'message': 'Ungültiger Zugangscode.'}), 401
     
 @login_routes.route('/protected', methods=['GET'])
 @login_required

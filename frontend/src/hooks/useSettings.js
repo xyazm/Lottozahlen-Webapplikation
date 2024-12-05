@@ -81,6 +81,7 @@ export function useSettings() {
       return data;
     } catch (error) {
       console.error('Error sending settings:', error);
+      return { status: 'error', message: 'Fehler beim speichern der Einstellungen!' };
     }
   };
 

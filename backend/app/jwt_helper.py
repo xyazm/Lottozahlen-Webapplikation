@@ -34,7 +34,7 @@ def login_required_admin(f):
         claims = get_jwt()
         if claims.get("is_admin"):
             return f(*args, **kwargs)
-        return jsonify({'error': 'Unauthorized access. Admin privileges required.'}), 403
+        return jsonify({'status': 'error', 'message': 'Unauthorized access. Admin privileges required.'}), 403
     return decorated_function
 
 @jwt_routes.route('/verify-token', methods=['POST'])

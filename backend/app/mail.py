@@ -33,12 +33,12 @@ def contact():
 
         # Sicherstellen, dass kein Feld leer ist
         if not all([name, email, subject, message]):
-            return jsonify({'error': 'All fields are required'}), 400
+            return jsonify({'status': 'error', 'message': 'Bitte alle Felder ausfüllen.'}), 400
 
         send_contact_email(name, email, subject, message)  # E-Mail senden
         
-        return jsonify({'message': 'Nachricht erfolgreich gesendet'}), 200
+        return jsonify({'status': 'success', 'message': 'Nachricht erfolgreich gesendet'}), 200
     
     except Exception as e:
         print(f"Fehler beim Senden der Nachricht: {e}")  # Ausgabe im Terminal für Fehleranalyse
-        return jsonify({'error': 'Fehler beim Senden der Nachricht'}), 500
+        return jsonify({'status': 'error', 'message': 'Fehler beim Senden der Nachricht'}), 500

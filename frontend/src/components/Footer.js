@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Datenschutz from '../../pages/Datenschutz';
-import Impressum from '../../pages/Impressum';
+import Datenschutz from '../pages/Datenschutz';
+import Impressum from '../pages/Impressum';
 
 export default function Footer() {
   return(

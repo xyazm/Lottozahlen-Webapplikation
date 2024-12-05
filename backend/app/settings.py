@@ -32,13 +32,13 @@ def save_lottoschein():
         
         save_lottoschein_to_db(student_id=student_id, lottozahlen=lottoschein)
 
-    return jsonify({'message': 'Alle Lottoscheine wurden erfolgreich gespeichert.'}), 200
+    return jsonify({'status': 'success', 'message': 'Alle Lottoscheine wurden erfolgreich gespeichert.'}), 200
 
 @settings_routes.route('/settings', methods=['GET'])
 @login_required_admin
 def get_settings():
     settings = load_settings()
-    return jsonify(settings), 200 if settings else jsonify({'error': 'Keine Einstellungen gefunden.'}), 404
+    return jsonify(settings), 200 if settings else jsonify({'status': 'error', 'message': 'Keine Einstellungen gefunden.'}), 404
 
 @settings_routes.route('/settings', methods=['POST'])
 @login_required_admin
@@ -46,7 +46,7 @@ def update_settings():
     new_settings = request.json
     required_fields = ['anzahlLottoscheine', 'feedbackEnabled', 'personalData']
     if not all(field in new_settings for field in required_fields):
-        return jsonify({'error': 'Alle Felder sind erforderlich.'}), 400
+        return jsonify({'status': 'error', 'message': 'Alle Felder sind erforderlich.'}), 400
     
     save_settings(new_settings)
-    return jsonify({'message': 'Einstellungen erfolgreich gespeichert.'}), 200
+    return jsonify({'status': 'success', 'message': 'Einstellungen erfolgreich gespeichert.'}), 200
