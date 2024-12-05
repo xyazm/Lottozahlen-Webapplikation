@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router} from 'react-router-dom';
 import './styles/index.css';
-import Header from './components/Header/Header';
-import Body from './components/Body/Body';
-import Footer from './components/Footer/Footer';
+import Header from './components/Header';
+import Body from './components/Body';
+import Footer from './components/Footer';
 import useAuth from './hooks/useAuth'; 
 import CookieConsent from 'react-cookie-consent';
 import Cookies from 'js-cookie';

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import Button from '../Button/Button';
+import Button from '../components/Button';
+import ConfirmationMessage from '../components/ConfirmationMessage';
 import Plot from 'react-plotly.js';
-import { useSettings } from '../../hooks/useSettings';
-import { usePlot } from '../../hooks/usePlot';
+import { useSettings } from '../hooks/useSettings';
+import { usePlot } from '../hooks/usePlot';
 
 export default function Admin() {
   const {
@@ -18,6 +19,7 @@ export default function Admin() {
   } = useSettings();
 
   const [confirmationMessage, setConfirmationMessage] = useState('');
+  const [messageType, setMessageType] = useState('');
 
   // Objekt für alle Einstellungen
   const settings = [
@@ -50,22 +52,16 @@ export default function Admin() {
   const handleDBUpdate = async (e) => {
     e.preventDefault();
     const response = await handleUpdateLottoDatabase();
-    if (response.status === 'success') {
-      setConfirmationMessage(response.message);
-    } else {
-      setConfirmationMessage(`Fehler: ${response.message}`);
-    }
+    setConfirmationMessage(response.message);
+    setMessageType(response.status)
     setTimeout(() => setConfirmationMessage(''), 3000);
   } ;
 
   const handleRandomScheineUpdate = async (e) => {
     e.preventDefault();
     const response = await handleUpdateRandomLottoscheine();
-    if (response.status === 'success') {
-      setConfirmationMessage(response.message);
-    } else {
-      setConfirmationMessage(`Fehler: ${response.message}`);
-    }
+    setConfirmationMessage(response.message);
+    setMessageType(response.status)
     setTimeout(() => setConfirmationMessage(''), 3000);
   } ;
 
@@ -76,6 +72,7 @@ export default function Admin() {
     if (!isNaN(number) && number > 0) {
       const response = await saveSettings(number, feedbackEnabled, personalData);
       setConfirmationMessage(response.message);
+      setMessageType(response.status)
       setTimeout(() => setConfirmationMessage(''), 3000);
     }
   };
@@ -85,11 +82,7 @@ export default function Admin() {
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Willkommen Admin</h1>
 
       {/* Bestätigungsmeldung */}
-      {confirmationMessage && (
-        <div className="mb-4 p-3 bg-green-100 text-rubGreen rounded-md">
-          {confirmationMessage}
-        </div>
-      )}
+      <ConfirmationMessage message={confirmationMessage} type={messageType} />
 
       {/* Einstellungen Section */}
       <div className="mb-8">

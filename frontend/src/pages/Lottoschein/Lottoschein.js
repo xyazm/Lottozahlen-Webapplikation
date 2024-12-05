@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './lottoschein.css';
-import Button from '../Button/Button';
+import Button from '../../components/Button';
 import { ReactComponent as CrossHandwrittenIcon } from '../../assets/handwritten-cross.svg';
 import { ReactComponent as WarningIcon } from '../../assets/warning.svg';
 import { ReactComponent as KleeblattIcon } from '../../assets/kleeblatt.svg';

@@ -1,6 +1,6 @@
 import React from 'react';
-import { ReactComponent as RubLogo } from '../../assets/rub-logo.svg';
-import { ReactComponent as LogOut } from '../../assets/log-out.svg'; 
+import { ReactComponent as RubLogo } from '../assets/rub-logo.svg';
+import { ReactComponent as LogOut } from '../assets/log-out.svg'; 
 import { useLocation } from 'react-router-dom';
 
 export default function Header({ onLogout, sessionTimeLeft, isLoggedIn }) {

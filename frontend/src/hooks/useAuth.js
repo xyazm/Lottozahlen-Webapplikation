@@ -4,17 +4,13 @@ const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [sessionTimeLeft, setSessionTimeLeft] = useState(1800); // 30 Minuten
   const [timerActive, setTimerActive] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [confirmationMessage, setConfirmationMessage] = useState(null);
 
   const sessionTimeoutRef = useRef(null);
 
   // API-Anfrage zum Versenden des Zugangscodes
   const sendAccessCode = async (email) => {
     if (!email.endsWith('@rub.de')) {
-      setErrorMessage('Nur E-Mail-Adressen der RUB-Domäne (@rub.de) sind erlaubt.');
-      setConfirmationMessage(null);
-      return false;
+      return { status: 'error', message: 'Nur E-Mail-Adressen der RUB-Domäne (@rub.de) sind erlaubt.'};
     }
 
     try {
@@ -24,19 +20,10 @@ const useAuth = () => {
         body: JSON.stringify({ email })
       });
 
-      if (response.ok) {
-        setConfirmationMessage('Zugangscode wurde erfolgreich verschickt!');
-        setErrorMessage(null);
-        return true;
-      } else {
-        setErrorMessage('Fehler beim Senden des Zugangscodes.');
-        setConfirmationMessage(null);
-        return false;
-      }
+      const data = await response.json();
+      return data;
     } catch (error) {
-      setErrorMessage(error.message);
-      setConfirmationMessage(null);
-      return false;
+      return { status: 'error', message: error.message};
     }
   };
 
@@ -54,15 +41,12 @@ const useAuth = () => {
         const token = data.access_token;
         localStorage.setItem('token', token);
         login();
-        setErrorMessage(null);
-        return true;
+        return data;
       } else {
-        setErrorMessage('Ungültiger Zugangscode oder E-Mail.');
-        return false;
+        return { status: 'error', message: 'Ungültiger Zugangscode oder E-Mail.'};
       }
     } catch (error) {
-      setErrorMessage(error.message);
-      return false;
+      return { status: 'error', message: error.message};
     }
   };
 
@@ -152,8 +136,6 @@ const useAuth = () => {
     login,
     logout,
     sessionTimeLeft,
-    errorMessage,
-    confirmationMessage,
     sendAccessCode,
     validateAccessCode,
   };
