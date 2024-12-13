@@ -4,8 +4,10 @@ import pandas as pd
 from flask import jsonify
 from ..database import save_lottoscheine_examples_to_db
 from . import lotto_db
+from ..jwt_helper import login_required_admin
 
-@lotto_db.route('/generate-lotto-tickets', methods=['POST'])
+@lotto_db.route('/admin/generate-lotto-tickets', methods=['POST'])
+@login_required_admin
 def generate_lotto_tickets():
     """
     API-Endpoint zur Generierung und Speicherung von Lottoscheinen.

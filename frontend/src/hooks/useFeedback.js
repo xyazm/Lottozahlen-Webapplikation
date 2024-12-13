@@ -1,14 +1,15 @@
 import { useState } from 'react';
 
 export function useFeedback() {
-  const [feedback, setFeedback] = useState(''); 
+  const [aifeedback, setAiFeedback] = useState(''); 
+  const [codedfeedback, setCodedFeedback] = useState(''); 
   const [isLoading, setIsLoading] = useState(false); 
   const [error, setError] = useState(null); 
 
-  const generateFeedback = async (scheine) => {
+  // Funktion für das AI-generierte Feedback
+  const generateAIFeedback = async (scheine) => {
     setIsLoading(true);
     setError(null);
-
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:5000/predict', {
@@ -21,7 +22,7 @@ export function useFeedback() {
       });
 
       if (!response.ok) {
-        throw new Error(`Fehler bei der Feedback-Anfrage: ${response.statusText}`);
+        throw new Error(`Fehler bei der AI-Feedback-Anfrage: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -29,18 +30,52 @@ export function useFeedback() {
         throw new Error(data.error);
       }
 
-      setFeedback(data.prediction); 
+      setAiFeedback(data.prediction); // Setze AI-generiertes Feedback
     } catch (err) {
-      setError(err.message); 
+      setError(err.message);
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
+    }
+  };
+
+  // Funktion für das kombinierte Feedback aus der neuen Route
+  const generateCombinedFeedback = async (scheine) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/user_analysen', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ scheine }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Fehler bei der kombinierten Feedback-Anfrage: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setCodedFeedback(data.coded_feedback); // Setze kombiniertes Feedback
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return {
-    feedback,
+    aifeedback,
+    codedfeedback,
     isLoading,
     error,
-    generateFeedback, // Funktion, um Feedback zu generieren
+    generateAIFeedback, 
+    generateCombinedFeedback,
   };
 }

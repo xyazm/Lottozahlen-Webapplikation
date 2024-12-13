@@ -1,4 +1,5 @@
 from flask import Blueprint
+from ..jwt_helper import login_required
 
 feedback_routes = Blueprint('feedback', __name__)
 

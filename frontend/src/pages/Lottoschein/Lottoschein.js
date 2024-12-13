@@ -20,10 +20,12 @@ export default function Lottoschein() {
   } = useLottoschein();
 
   const { 
-    feedback, 
+    aifeedback, 
+    codedfeedback,
     isLoading, 
-    error, 
-    generateFeedback 
+    //error, 
+    generateAIFeedback,
+    generateCombinedFeedback,
   } = useFeedback();
 
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -40,10 +42,10 @@ export default function Lottoschein() {
     const scheinData = scheine.map((schein) => ({
       numbers: schein.getSelectedNumbers(),
     }));
-    await generateFeedback(scheinData); 
-    if (response.status=="success") {
+    if (response.status==="success") {
       setIsSubmitted(true);
-      await generateFeedback(scheinData); 
+      await generateCombinedFeedback(scheinData);
+      await generateAIFeedback(scheinData); 
     }
     else {
       setTimeout(() => setConfirmationMessage(''), 3000);
@@ -78,9 +80,17 @@ export default function Lottoschein() {
       {isSubmitted && (
         <div className="mt-4">
           {isLoading ? 'Analysieren...' : null}
+          <h3>Backend-Analyse</h3>
           <textarea
             className="w-full p-2 border rounded mt-2"
-            value={feedback}
+            value={codedfeedback}
+            disabled
+            rows="10"
+          />
+          <h3>Analyse vom KI-Model</h3>
+          <textarea
+            className="w-full p-2 border rounded mt-2"
+            value={aifeedback}
             disabled
             rows="10"
           />
@@ -95,12 +105,12 @@ function LottoscheinHeader() {
     <div id="lottoschein-topic" className="bg-rubBlue text-rubGreen font-heading flex items-center justify-between w-full">
       <div id="lottoschein-topic-left" className="m-3 flex items-start">
         <KleeblattIcon className="w-8 h-8" />
-        <h3 className="text-2xl">
+        <h4 className="text-2xl">
           <span className="font-bold">RUB</span>Lotterie
-        </h3>
+        </h4>
       </div>
       <div id="lottoschein-topic-right" className="m-3 flex items-end">
-        <h3 className="text-2xl">Gib dem Zufall keine Chance</h3>
+        <h4 className="text-2xl">Gib dem Zufall keine Chance</h4>
       </div>
     </div>
   );

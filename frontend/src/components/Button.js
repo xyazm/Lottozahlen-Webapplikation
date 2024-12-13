@@ -2,20 +2,19 @@ import React from 'react';
 
 const Button = ({ 
   buttonId, 
-  text , 
+  text, 
   onClick, 
-  disabled=false}) => {
-
+  disabled = false, 
+  className = ''
+}) => {
   return (
-    <button 
-      id={buttonId} 
-      onClick={onClick} 
+    <button
+      id={buttonId}
+      onClick={onClick}
       disabled={disabled}
-      className="flex items-center h-8 bg-rubBlue rounded-lg text-white text-m font-heading transition duration-150 ease-in-out transform hover:shadow-lg hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2"
+      className={`flex items-center bg-rubBlue rounded-lg text-white font-heading transition duration-150 ease-in-out transform hover:shadow-lg hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 h-8 p-2 ${className}`}
     >
-      <span className="m-4">
-        {text}
-      </span>
+      {text}
     </button>
   );
 };

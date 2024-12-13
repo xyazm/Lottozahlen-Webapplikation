@@ -31,9 +31,15 @@ export function useLottoschein() {
   const [anzahl, setAnzahl] = useState(0);
   const [scheine, setScheine] = useState([]);
   const [useFeedback, setUseFeedback] = useState(true);
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
-    fetch('http://localhost:5000/get-lottoschein-settings')
+    fetch('http://localhost:5000/get-lottoschein-settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }})
       .then(response => response.json())
       .then(data => {
         if (data && !data.error) {
@@ -77,7 +83,6 @@ export function useLottoschein() {
 
   const handleSaveScheine = async() => {
     if (validateScheine()) {
-      const token = localStorage.getItem('token');
       const scheinData = scheine.map(schein => ({
         numbers: schein.getSelectedNumbers()
       }));
@@ -106,6 +111,7 @@ export function useLottoschein() {
     alertMessage,
     alertPosition,
     scheine,
+    useFeedback,
     handleToggleNumber,
     setAlertPosition,
     handleSaveScheine

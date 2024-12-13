@@ -1,15 +1,21 @@
 from flask import request, current_app, jsonify
 from groq import Groq
-from . import feedback_routes
+from . import feedback_routes, login_required
 
 client = Groq()
 
 @feedback_routes.route ('/predict', methods=['POST'])
+@login_required
 def predict():
     data = request.json
     scheine = data.get('scheine')
-    if not scheine:
+    # codedFeedback = data.get('codedfeedback')
+
+    if not scheine or not isinstance(scheine, list):
         return jsonify({'status': 'error', 'message' : 'Keine Lottoscheindaten übergeben.'}), 400
+    
+    # if not codedFeedback or not isinstance(codedFeedback, str):
+    #     return jsonify({'status': 'error', 'message' : 'Ungültiges oder fehlendes codedFeedback.'}), 400
     
     # 7x7-Gitter für visuelle Referenz
     grid = """
@@ -21,31 +27,29 @@ def predict():
     36 37 38 39 40 41 42
     43 44 45 46 47 48 49
     """
-
-    numbers = "\n".join([str(schein["numbers"]) for schein in scheine])
     
+    # Das ist bereits die Analyse des Python-Backend für die unten gegebene Scheine:
+    # {codedFeedback}
     message = f"""
-    Analysiere die folgenden Lottoscheine, die in einem 7x7-Gitter organisiert sind. 
-    Identifiziere visuelle Muster, Anomalien oder Trends, die möglicherweise relevant sind.
-    Lottoscheine:
+    Analysiere die folgenden Lottoscheine, nutze auch das Ergebniss der Backend-Analyse:
     {scheine}
     """
 
     # Rollenbeschreibung und spezifischer Prompt
     prompt = f"""
-    Du bist eine KI-Expertin für die Analyse von Lottoscheinen. 
-    Deine Hauptaufgabe ist es, visuelle und numerische Muster in den folgenden Zahlen zu analysieren. 
-    Die Zahlen sind auf einem 7x7-Gitter angeordnet:
+    Du bist eine spezialisierte KI für die Analyse von Lottoscheinen, 
+    die sowohl numerische als auch visuelle Muster identifiziert. 
+    Die Zahlen sind auf einem 7x7-Gitter organisiert:
 
     Gitter: {grid}
 
-    Deine Aufgaben:
-    1. Erkenne optische Muster (z. B. Linien, Kreuze, Buchstaben, Formen).
-    2. Analysiere numerische Muster (gerade/ungerade, Primzahlen, Sequenzen, Cluster).
-    3. Bewerte die Verteilung im Zahlenbereich 1 bis 49.
-    4. Schätze, wie zufällig die Auswahl ist, auf einer Skala von 0-100%.
-    5. Analysiere emotionale Aspekte (z. B. Geburtstage, Glückszahlen, menschlich zufällige Muster).
-    6. Gib Feedback und Empfehlungen.
+    **Deine Aufgaben:**
+    1. Identifiziere visuelle Muster wie Buchstaben (z. B. O, L, Y), geometrische Formen (z. B. Kreuze, Quadrate, Linien) oder andere auffällige Anordnungen basiernd auf der Verteilugn auf dem Gitter.
+    2. Analysiere numerische Muster wie geraden/ungeraden Verteilungen, Primzahlen, aufeinanderfolgende Sequenzen oder Cluster (im Gitter).
+    3. Bewerte die Verteilung der Zahlen im Bereich 1 bis 49. Welche Zahlenbereiche fehlen oder werden bevorzugt?
+    4. Bewerte die Zufälligkeit der Auswahl auf einer Skala von 0 bis 100% unter Berücksichtigung von Mustern und Verteilungen.
+    5. Analysiere emotionale Aspekte, wie Geburtstage, Glückszahlen oder andere menschlich zufällige Muster.
+    6. Gib Feedback und klare Empfehlungen zur Verbesserung der Zufälligkeit oder Verteilung der Zahlen.
     """
     
     prediction = predict_with_language_model(message, prompt)

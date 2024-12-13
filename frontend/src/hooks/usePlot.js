@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 export function usePlot() {
   const [plots, setPlots] = useState({}); // Dynamisches Objekt, das alle Plots enthält
   const apiURL = 'http://localhost:5000'; // URL des Backends
+  const token = localStorage.getItem('token');
 
   const analyses = [
     { key: 'haeufigkeit', url: `${apiURL}/haeufigkeit`, label: 'Häufigkeit der Lottozahlen' },
@@ -19,7 +20,12 @@ export function usePlot() {
 
   useEffect(() => {
     analyses.forEach(({ key, url }) => {
-      fetch(url)
+      fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+      })
         .then((response) => response.json())
         .then((data) => {
           if (data) {

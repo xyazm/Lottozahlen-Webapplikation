@@ -4,14 +4,13 @@ import './styles/index.css';
 import Header from './components/Header';
 import Body from './components/Body';
 import Footer from './components/Footer';
-import useAuth from './hooks/useAuth'; 
 import CookieConsent from 'react-cookie-consent';
 import Cookies from 'js-cookie';
+import useAuth from './hooks/useAuth'
 
 function App() {
   const {
     isAuthenticated,
-    userType,
     logout, // Logout-Funktion vom Hook
     sessionTimeLeft, // Verbleibende Session-Zeit
   } = useAuth();
@@ -45,7 +44,7 @@ function App() {
     <Router>
       <div className="flex flex-col items-center min-h-screen bg-lightGray">
         <Header onLogout={logout} sessionTimeLeft={sessionTimeLeft} isLoggedIn={isAuthenticated} />
-        <Body userType={userType} isAuthenticated={isAuthenticated} />
+        <Body />
         <Footer />
         {!cookiesAccepted && (
           <CookieConsent
