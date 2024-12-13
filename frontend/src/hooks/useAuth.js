@@ -2,13 +2,29 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false); 
   const [sessionTimeLeft, setSessionTimeLeft] = useState(1800); // 30 Minuten
   const [timerActive, setTimerActive] = useState(false);
 
   const sessionTimeoutRef = useRef(null);
 
+  const acceptTerms = async (email) => {
+    try {
+      const response = await fetch('http://localhost:5000/accept_terms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      return { status: 'error', message: error.message };
+    }
+  };
+
   // API-Anfrage zum Versenden des Zugangscodes
-  const sendAccessCode = async (email) => {
+  const sendAccessCode = async (email, acceptTerms = false) => {
     if (!email.endsWith('@rub.de')) {
       return { status: 'error', message: 'Nur E-Mail-Adressen der RUB-Domäne (@rub.de) sind erlaubt.'};
     }
@@ -17,7 +33,7 @@ const useAuth = () => {
       const response = await fetch('http://localhost:5000/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, accept_terms: acceptTerms })
       });
 
       const data = await response.json();
@@ -35,23 +51,37 @@ const useAuth = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, access_code: accessCode }),
       });
-
-      if (response.ok) {
-        const data = await response.json();
+      const data = await response.json();
+  
+      if (data.access_token) {
         const token = data.access_token;
         localStorage.setItem('token', token);
-        login();
-        return data;
+  
+        const decodedToken = JSON.parse(atob(token.split('.')[1]));
+  
+        
+      if (decodedToken.is_admin) {
+        setIsAdmin(true);
+        setIsAuthenticated(true); // Admin-Status setzen und authentifiziert
+        return { isAdmin: true };
       } else {
-        return { status: 'error', message: 'Ungültiger Zugangscode oder E-Mail.'};
+        setIsAdmin(false);
+        setIsAuthenticated(true); // Student-Status setzen und authentifiziert
+        return { isAdmin: false };
       }
+    } else {
+      console.error("Kein Token im Response erhalten.");
+      return { status: 'error', message: 'Ungültiger Zugangscode oder Passwort.' };
+    }
     } catch (error) {
+      console.error("Fehler beim API-Aufruf:", error);
       return { status: 'error', message: error.message};
     }
   };
 
   const logout = useCallback(() => {
     setIsAuthenticated(false);
+    setIsAdmin(false);
     setTimerActive(false);
     setSessionTimeLeft(0);
     localStorage.removeItem('token');
@@ -72,7 +102,6 @@ const useAuth = () => {
     setTimerActive(true);
     setSessionTimeLeft(1800);
     resetSessionTimeout();
-    window.location.href = '/lottoschein';
   }, [resetSessionTimeout]);
 
   useEffect(() => {
@@ -92,6 +121,8 @@ const useAuth = () => {
       });
 
       if (response.ok) {
+        const decodedToken = JSON.parse(atob(token.split('.')[1]));
+        setIsAdmin(decodedToken.is_admin); 
         setIsAuthenticated(true);
         setTimerActive(true);
         setSessionTimeLeft(1800);
@@ -133,6 +164,7 @@ const useAuth = () => {
 
   return {
     isAuthenticated,
+    isAdmin,
     login,
     logout,
     sessionTimeLeft,

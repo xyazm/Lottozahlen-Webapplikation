@@ -1,13 +1,128 @@
 import pandas as pd
 import numpy as np
-from flask import jsonify
 import json
+from flask import request, jsonify
 import plotly.express as px
-from . import analysis_routes
+from . import analysis_routes, login_required_admin
 from ..database import get_scheinexamples_from_db
 
+
+# Hilfsfunktion: Gitter und Positionen berechnen
+def berechne_gitter_und_positionen(zahlen):
+    """
+    Erstellt ein 7x7-Gitter und berechnet die Positionen der Zahlen.
+    """
+    gitter = np.zeros((7, 7), dtype=int)
+    positionen = []
+    for zahl in zahlen:
+        zeile = (zahl - 1) // 7
+        spalte = (zahl - 1) % 7
+        gitter[zeile, spalte] = 1
+        positionen.append((zeile, spalte))
+    return gitter, positionen
+
+
+# Hilfsfunktion: Zeilen- und Spaltenanalyse
+def analysiere_zeilen_und_spalten(gitter):
+    """
+    Führt eine Analyse der Zeilen- und Spaltenverteilung durch.
+    """
+    zeilen_count = gitter.sum(axis=1)
+    spalten_count = gitter.sum(axis=0)
+    return np.std(zeilen_count), np.std(spalten_count)
+
+
+# Hilfsfunktion: Paarweise Distanzen berechnen
+def berechne_paarweise_distanzen(positionen):
+    """
+    Berechnet die paarweisen Distanzen (euklidisch) zwischen den Zahlenpositionen.
+    """
+    paarweise_distanzen = []
+    for i, (z1, s1) in enumerate(positionen):
+        for j, (z2, s2) in enumerate(positionen):
+            if i < j:
+                distanz = np.sqrt((z2 - z1)**2 + (s2 - s1)**2)
+                paarweise_distanzen.append(distanz)
+    return np.mean(paarweise_distanzen) if paarweise_distanzen else 0
+
+
+# Hilfsfunktion: Quadrantenanalyse
+def analysiere_quadranten(positionen):
+    """
+    Führt eine Quadrantenanalyse durch und berechnet die Standardabweichung.
+    """
+    quadranten = {'Q1': 0, 'Q2': 0, 'Q3': 0, 'Q4': 0}
+    for z, s in positionen:
+        if z < 3 and s < 3:
+            quadranten['Q1'] += 1
+        elif z < 3 and s >= 3:
+            quadranten['Q2'] += 1
+        elif z >= 3 and s < 3:
+            quadranten['Q3'] += 1
+        else:
+            quadranten['Q4'] += 1
+    return np.std(list(quadranten.values()))
+
+
+# Hilfsfunktion: Feedback generieren
+def generate_verteilungs_feedback(ergebnisse):
+    """
+    Generiert Feedback basierend auf der Verteilungsanalyse.
+    """
+    if not ergebnisse:
+        return ["Es wurden keine Daten analysiert."]
+    feedback = []
+    feedback.append(f"Durchschnittliche Standardabweichung der Zeilen: {ergebnisse['Zeilen_STD']:.2f}\n")
+    feedback.append(f"Durchschnittliche Standardabweichung der Spalten: {ergebnisse['Spalten_STD']:.2f}\n")
+    feedback.append(f"Durchschnittliche Distanz zwischen Zahlen: {ergebnisse['Durchschnittliche_Distanz']:.2f}\n")
+    feedback.append(f"Standardabweichung der Zahlen in Quadranten: {ergebnisse['Quadranten_STD']:.2f}\n")
+    return feedback
+
+
+# Route: User-spezifische Verteilungsanalyse
+#@analysis_routes.route('/user_verteilungsanalyse', methods=['POST'])
+def user_verteilungsanalyse_route(user_scheine):
+    """
+    Führt eine Verteilungsanalyse für die Lottoscheine eines Users durch.
+    """
+    try:
+        if not user_scheine:
+            return jsonify({'error': 'Keine Lottoscheine übergeben.'}), 400
+
+        ergebnisse = []
+        for schein in user_scheine:
+            zahlen = schein.get('numbers', [])
+            if len(zahlen) != 6:
+                return jsonify({'error': f"Ungültiger Schein: {schein}"}), 400
+
+            gitter, positionen = berechne_gitter_und_positionen(zahlen)
+            zeilen_std, spalten_std = analysiere_zeilen_und_spalten(gitter)
+            durchschnittliche_distanz = berechne_paarweise_distanzen(positionen)
+            quadranten_std = analysiere_quadranten(positionen)
+
+            ergebnisse.append({
+                'Zeilen_STD': zeilen_std,
+                'Spalten_STD': spalten_std,
+                'Durchschnittliche_Distanz': durchschnittliche_distanz,
+                'Quadranten_STD': quadranten_std
+            })
+
+        # Feedback generieren
+        feedback = generate_verteilungs_feedback(pd.DataFrame(ergebnisse).mean().to_dict())
+        # return jsonify({'feedback': feedback})
+        return feedback
+    except Exception as e:
+        print(f"Fehler in der User-Verteilungsanalyse: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+# Route: Globale Verteilungsanalyse mit Visualisierung
 @analysis_routes.route('/verteilungsanalyse')
-def verteilungsanalyse():
+@login_required_admin
+def verteilungsanalyse_route():
+    """
+    Führt eine globale Verteilungsanalyse durch und erstellt eine Visualisierung.
+    """
     try:
         plot_data = analyse_verteilung_und_distanz()
         return jsonify({'verteilungsanalyse_plot': plot_data})
@@ -15,58 +130,22 @@ def verteilungsanalyse():
         print(f"Fehler in der Verteilungsanalyse: {e}")
         return jsonify({'error': str(e)}), 500
 
+
 def analyse_verteilung_und_distanz():
+    """
+    Führt eine globale Verteilungsanalyse durch und erstellt eine Visualisierung.
+    """
     scheine = get_scheinexamples_from_db()
 
-    # Ergebnis für alle Scheine
     ergebnisse = []
-
     for schein in scheine:
-        zahlen = [schein.lottozahl1, schein.lottozahl2, schein.lottozahl3, 
+        zahlen = [schein.lottozahl1, schein.lottozahl2, schein.lottozahl3,
                   schein.lottozahl4, schein.lottozahl5, schein.lottozahl6]
-        
-        # Gitter erstellen und Positionen berechnen
-        gitter = np.zeros((7, 7), dtype=int)
-        positionen = []
-        for zahl in zahlen:
-            zeile = (zahl - 1) // 7
-            spalte = (zahl - 1) % 7
-            gitter[zeile, spalte] = 1
-            positionen.append((zeile, spalte))
 
-        # Zeilen- und Spaltenauswertung
-        zeilen_count = gitter.sum(axis=1)
-        spalten_count = gitter.sum(axis=0)
-        
-        # Standardabweichung der Verteilung
-        zeilen_std = np.std(zeilen_count)
-        spalten_std = np.std(spalten_count)
-
-        # Paarweise Distanzen berechnen (euklidisch)
-        paarweise_distanzen = []
-        for i, (z1, s1) in enumerate(positionen):
-            for j, (z2, s2) in enumerate(positionen):
-                if i < j:
-                    distanz = np.sqrt((z2 - z1)**2 + (s2 - s1)**2)
-                    paarweise_distanzen.append(distanz)
-
-        durchschnittliche_distanz = np.mean(paarweise_distanzen) if paarweise_distanzen else 0
-
-        # Quadrantenanalyse
-        quadranten = {
-            'Q1': 0, 'Q2': 0, 'Q3': 0, 'Q4': 0
-        }
-        for z, s in positionen:
-            if z < 3 and s < 3:
-                quadranten['Q1'] += 1
-            elif z < 3 and s >= 3:
-                quadranten['Q2'] += 1
-            elif z >= 3 and s < 3:
-                quadranten['Q3'] += 1
-            else:
-                quadranten['Q4'] += 1
-
-        quadranten_std = np.std(list(quadranten.values()))
+        gitter, positionen = berechne_gitter_und_positionen(zahlen)
+        zeilen_std, spalten_std = analysiere_zeilen_und_spalten(gitter)
+        durchschnittliche_distanz = berechne_paarweise_distanzen(positionen)
+        quadranten_std = analysiere_quadranten(positionen)
 
         ergebnisse.append({
             'Zeilen_STD': zeilen_std,
@@ -75,21 +154,21 @@ def analyse_verteilung_und_distanz():
             'Quadranten_STD': quadranten_std
         })
 
-    # Durchschnittswerte über alle Scheine berechnen
+    # Durchschnittswerte berechnen
     df = pd.DataFrame(ergebnisse)
     summary = df.mean().reset_index()
     summary.columns = ['Metrik', 'Durchschnittswert']
 
-    # Kurze Hover-Beschreibungen für die Metriken
+    # Hover-Beschreibungen
     hover_texts = {
-        'Zeilen_STD': 'Standardabweichung der Zahlen auf Zeilen (niedrig = gleichmäßige Verteilung)',
-        'Spalten_STD': 'Standardabweichung der Zahlen auf Spalten (niedrig = gleichmäßige Verteilung)',
+        'Zeilen_STD': 'Standardabweichung der Zahlen auf Zeilen (niedrig = gleichmäßig verteilt)',
+        'Spalten_STD': 'Standardabweichung der Zahlen auf Spalten (niedrig = gleichmäßig verteilt)',
         'Durchschnittliche_Distanz': 'Mittlere Distanz zwischen gewählten Zahlen (hoch = weit verstreut)',
         'Quadranten_STD': 'Standardabweichung der Zahlen in Quadranten (niedrig = gleichmäßig verteilt)'
     }
     summary['Beschreibung'] = summary['Metrik'].map(hover_texts)
 
-    # Visualisierung mit Plotly
+    # Visualisierung
     fig = px.bar(
         summary,
         x='Metrik',
@@ -97,7 +176,7 @@ def analyse_verteilung_und_distanz():
         title='Analyse der Verteilung und Distanz der Zahlen auf dem Gitter',
         labels={'Metrik': 'Metrik', 'Durchschnittswert': 'Wert'},
         text='Durchschnittswert',
-        hover_data={'Beschreibung': True}  # Fügt die Beschreibung beim Hover hinzu
+        hover_data={'Beschreibung': True}
     )
     fig.update_traces(textposition='outside')
     fig.update_layout(title_x=0.5)

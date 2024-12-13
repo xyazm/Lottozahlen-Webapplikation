@@ -11,6 +11,10 @@
     h2 {
       @apply font-heading font-semibold text-h2 leading-h2 text-rubBlue mt-8 mb-2;
     }
+
+    h3 {
+      @apply font-heading font-semibold text-h3 leading-h3 text-rubBlue mt-8 mb-2;
+    }
   
     /* Fließtext-Stil */
     p {

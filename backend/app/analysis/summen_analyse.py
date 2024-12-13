@@ -1,25 +1,18 @@
 import pandas as pd
-import plotly.graph_objects as go
 import json
 from collections import Counter
-from . import analysis_routes
-from flask import jsonify
+from flask import request, jsonify
+from . import analysis_routes, login_required_admin
 from ..database import get_scheinexamples_from_db
+import plotly.graph_objects as go
 
-@analysis_routes.route('/summenanalyse')
-def summenanalyse():
-    try:
-        plot_json = get_summen_combined_plot()
-        return jsonify({'summenanalyse_plot': plot_json})
-    except Exception as e:
-        print(f"Fehler in der Summenanalyse: {e}")
-        return jsonify({'error': str(e)}), 500
 
-def get_summen_combined_plot():
-    scheine = get_scheinexamples_from_db()
-
-    # Definiere die Summenkategorien
-    summenkategorien = [
+# Hilfsfunktion: Summenkategorien definieren
+def summenkategorien_definieren():
+    """
+    Gibt die Kategorien für die Summenanalyse zurück.
+    """
+    return [
         {"range": (0, 81), "label": "<82"},
         {"range": (82, 96), "label": "82-96"},
         {"range": (97, 111), "label": "97-111"},
@@ -34,16 +27,107 @@ def get_summen_combined_plot():
         {"range": (247, 279), "label": "247-279"},
     ]
 
-    kategorie_labels = [kategorie["label"] for kategorie in summenkategorien]
 
-    # Funktion zur Bestimmung der Kategorie für eine gegebene Summe
-    def kategorie_bestimmen(summe):
-        for kategorie in summenkategorien:
-            if kategorie["range"][0] <= summe <= kategorie["range"][1]:
-                return kategorie["label"]
-        return None
+# Hilfsfunktion: Kategorie bestimmen
+def kategorie_bestimmen(summe, summenkategorien):
+    """
+    Bestimmt die Kategorie einer gegebenen Summe basierend auf den Kategorien.
+    """
+    for kategorie in summenkategorien:
+        if kategorie["range"][0] <= summe <= kategorie["range"][1]:
+            return kategorie["label"]
+    return None
 
-    # Ergebnisse sammeln
+
+# Hilfsfunktion: Daten für Summenkategorien vorbereiten
+def vorbereiten_summen_daten(summen_counter, summenkategorien, total_scheine):
+    """
+    Bereitet die Daten für die Visualisierung oder Feedback basierend auf Summenkategorien vor.
+    """
+    summen_prozent = {
+        kategorie["label"]: (summen_counter.get(kategorie["label"], 0) / total_scheine) * 100 if total_scheine > 0 else 0
+        for kategorie in summenkategorien
+    }
+    return pd.DataFrame([
+        {
+            "Kategorie": kategorie["label"],
+            "Prozent": summen_prozent.get(kategorie["label"], 0),
+            "Häufigkeit": summen_counter.get(kategorie["label"], 0),
+        }
+        for kategorie in summenkategorien
+    ])
+
+
+# Hilfsfunktion: Feedback generieren
+def generate_summen_feedback(summen_counter):
+    """
+    Generiert Feedback zur Summenanalyse.
+    """
+    if not summen_counter:
+        return ["Keine Summendaten vorhanden."]
+    häufigste_kategorie = max(summen_counter, key=summen_counter.get)
+    häufigkeit = summen_counter[häufigste_kategorie]
+    return [f"Die häufigste Summenkategorie ist '{häufigste_kategorie}' mit {häufigkeit} Scheinen.\n"]
+
+
+# Route: User-spezifische Summenanalyse
+#@analysis_routes.route('/user_summenanalyse', methods=['POST'])
+def user_summenanalyse_route(user_scheine):
+    """
+    Führt eine Summenanalyse für die Lottoscheine eines Users durch.
+    """
+    try:
+        if not user_scheine:
+            return jsonify({'error': 'Keine Lottoscheine übergeben.'}), 400
+
+        # Summenkategorien definieren
+        summenkategorien = summenkategorien_definieren()
+
+        # Summen berechnen und kategorisieren
+        summen_counter = Counter()
+        for schein in user_scheine:
+            zahlen = schein.get('numbers', [])
+            if len(zahlen) != 6:
+                return jsonify({'error': f"Ungültiger Schein: {schein}"}), 400
+            summe = sum(zahlen)
+            kategorie = kategorie_bestimmen(summe, summenkategorien)
+            if kategorie:
+                summen_counter[kategorie] += 1
+
+        # Feedback generieren
+        feedback = generate_summen_feedback(summen_counter)
+        #return jsonify({'feedback': feedback})
+        return feedback
+    except Exception as e:
+        print(f"Fehler in der User-Summenanalyse: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+# Route: Globale Summenanalyse mit Visualisierung
+@analysis_routes.route('/summenanalyse')
+@login_required_admin
+def summenanalyse_route():
+    """
+    Führt eine globale Summenanalyse durch und erstellt eine Visualisierung.
+    """
+    try:
+        plot_json = get_summen_combined_plot()
+        return jsonify({'summenanalyse_plot': plot_json})
+    except Exception as e:
+        print(f"Fehler in der Summenanalyse: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+def get_summen_combined_plot():
+    """
+    Führt eine globale Summenanalyse durch und erstellt eine Visualisierung.
+    """
+    scheine = get_scheinexamples_from_db()
+
+    # Summenkategorien definieren
+    summenkategorien = summenkategorien_definieren()
+
+    # Summen berechnen und kategorisieren
     summen_counter = Counter()
     total_scheine = len(scheine)
 
@@ -51,33 +135,21 @@ def get_summen_combined_plot():
         zahlen = [schein.lottozahl1, schein.lottozahl2, schein.lottozahl3,
                   schein.lottozahl4, schein.lottozahl5, schein.lottozahl6]
         summe = sum(zahlen)
-        kategorie = kategorie_bestimmen(summe)
-        summen_counter[kategorie] += 1
+        kategorie = kategorie_bestimmen(summe, summenkategorien)
+        if kategorie:
+            summen_counter[kategorie] += 1
 
-    # Ergebnisse in Prozent umwandeln
-    summen_prozent = {
-        kategorie: (count / total_scheine) * 100 if total_scheine > 0 else 0
-        for kategorie, count in summen_counter.items()
-    }
+    # Daten vorbereiten
+    summen_df = vorbereiten_summen_daten(summen_counter, summenkategorien, total_scheine)
 
-    # Daten in DataFrame konvertieren
-    summen_df = pd.DataFrame([
-        {"Kategorie": k, "Prozent": summen_prozent.get(k,0), "Häufigkeit": summen_counter.get(k, 0)}
-        for k in kategorie_labels  
-    ])
-
-    # Subplots erstellen
+    # Balkendiagramm erstellen
     fig = go.Figure()
-
-    # Balkendiagramm für Summenkategorien
     for _, row in summen_df.iterrows():
         fig.add_trace(go.Bar(
             x=[row["Kategorie"]],
             y=[row["Prozent"]],
             name=row["Kategorie"],
             hovertemplate=f"Kategorie: {row['Kategorie']}<br>Häufigkeit: {row['Häufigkeit']}<br>Prozent: {row['Prozent']:.2f}%<extra></extra>",
-            xaxis="x1",
-            yaxis="y1"
         ))
 
     # Layout des Plots
@@ -89,5 +161,4 @@ def get_summen_combined_plot():
         showlegend=False
     )
 
-    # JSON für Plot zurückgeben
     return json.loads(fig.to_json())

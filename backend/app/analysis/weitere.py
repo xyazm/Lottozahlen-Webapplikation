@@ -27,3 +27,5 @@ def ist_gewinnzahl(schein, historische_gewinnzahlen):
     return any(gezogene_zahlen == gewinnzahlen for gewinnzahlen in historische_gewinnzahlen)
 
 # Malen nach Zahlen
+
+#CHI-QUADRAHT

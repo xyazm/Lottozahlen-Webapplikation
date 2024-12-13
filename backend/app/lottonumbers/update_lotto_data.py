@@ -4,9 +4,21 @@ import subprocess
 from datetime import datetime
 from flask import jsonify
 from ..database import save_lottohistoric_to_db, get_latest_lottohistoric_from_db
+from ..jwt_helper import login_required_admin
 from . import lotto_db
 
-@lotto_db.route('/update-lotto', methods=['POST'])
+@lotto_db.route('/admin/latest-lotto-data', methods=['GET'])
+@login_required_admin
+def latest_lotto_route():
+    try:
+        latest_date = get_latest_lottohistoric_from_db()
+        latest_date = latest_date.strftime('%a, %d.%m.%Y')
+        return jsonify({'latestdate': latest_date})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@lotto_db.route('/admin/update-lotto', methods=['POST'])
+@login_required_admin
 def update_lotto_route():
     """
     API-Endpoint, um die Lotto-Datenbank zu aktualisieren.

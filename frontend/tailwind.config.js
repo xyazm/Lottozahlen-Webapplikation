@@ -19,10 +19,12 @@ module.exports = {
         xl: '24px',
         'h1': '33px',
         'h2': '26px',
+        'h3': '21px',
       },
       lineHeight: {
         h1: '42px',
         h2: '42px',
+        h3: '42px',
         l: '30px',
       },
       letterSpacing: {

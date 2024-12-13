@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react';
 
-const API_URL = 'http://localhost:5000/settings';
+const API_URL = 'http://localhost:5000/admin';
 
 export function useSettings() {
   const [anzahlLottoscheine, setAnzahlLottoscheine] = useState(2);
   const [feedbackEnabled, setFeedbackEnabled] = useState(false);
   const [personalData, setPersonalData] = useState(false);
+  const token = localStorage.getItem('token');
 
   const handleUpdateLottoDatabase = async () => {
     try {
-      const response = await fetch('http://localhost:5000/update-lotto', {
+      const response = await fetch(`${API_URL}/update-lotto`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
       });
 
@@ -27,10 +29,11 @@ export function useSettings() {
 
   const handleUpdateRandomLottoscheine = async () => {
     try {
-      const response = await fetch('http://localhost:5000/generate-lotto-tickets', {
+      const response = await fetch(`${API_URL}/generate-lotto-tickets`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
       });
 
@@ -45,15 +48,30 @@ export function useSettings() {
   // Fetch settings from the API when the component mounts
   useEffect(() => {
     const fetchSettings = async () => {
-      try {
-        const response = await fetch(API_URL);
-        const data = await response.json();
-        setAnzahlLottoscheine(data.anzahlLottoscheine || 2); 
-        setFeedbackEnabled(data.feedbackEnabled || false);
-        setPersonalData(data.personalData || false);
-      } catch (error) {
-        console.error('Error fetching settings:', error);
+    try {// Hole den Token aus dem lokalen Speicher
+      if (!token) {
+        throw new Error("Kein Token gefunden.");
       }
+  
+      const response = await fetch(`${API_URL}/settings`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // JWT hinzufügen
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      setAnzahlLottoscheine(data.anzahlLottoscheine || 2);
+      setFeedbackEnabled(data.feedbackEnabled || false);
+      setPersonalData(data.personalData || false);
+    } catch (error) {
+      console.error('Error fetching admin settings:', error);
+    }
     };
 
     fetchSettings();
@@ -62,10 +80,11 @@ export function useSettings() {
   // Function to save settings
   const saveSettings = async (number, feedback, personal) => {
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch(`${API_URL}/settings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           anzahlLottoscheine: number,
