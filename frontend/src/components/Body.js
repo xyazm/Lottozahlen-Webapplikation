@@ -1,14 +1,14 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate} from 'react-router-dom';
 import Lottoschein from '../pages/Lottoschein/Lottoschein';
 import Admin from '../pages/Admin/Admin';
 import Login from '../pages/Login'; 
-import Home from '../pages/Home';  // Importiere die Startseite
+import Home from '../pages/Home';  
 import Contact from '../pages/Contact'; 
-import Datenschutz from '../pages/Datenschutz';  // Importiere die Datenschutzseite
-import Impressum from '../pages/Impressum';  // Importiere die Impressumseite
-import AdminRoute from '../pages/Admin/AdminRoute'; // Neue AdminRoute-Komponente
-import useAuth from '../hooks/useAuth';
+import Datenschutz from '../pages/Datenschutz';  
+import Impressum from '../pages/Impressum';  
+import AdminRoute from '../pages/Admin/AdminRoute'; 
+import { useAuth } from '../context/AuthContext';
 
 export default function Body() {
   const { isAuthenticated, isAdmin } = useAuth();
@@ -21,8 +21,14 @@ export default function Body() {
         <Route path="/" element={<Home />} />
 
           {/* Login-Seite */}
-          <Route path="/login" element={isAuthenticated ? <Navigate to={isAdmin ? '/admin' : '/lottoschein'} /> : <Login />} />
-
+          <Route 
+          path="/login" 
+          element={
+            isAuthenticated ? (<Navigate to={isAdmin ? '/admin' : '/lottoschein'} />   
+            ) : (
+            <Login /> )
+          } 
+          />
           {/* Lottoschein-Seite */}
           <Route path="/lottoschein" element={isAuthenticated ? <Lottoschein /> : <Navigate to="/login" />} />
 

@@ -101,7 +101,8 @@ def save_lottoschein_to_db(student_id, lottozahlen):
         lottozahl6=lottozahlen[5]
     )
     db.session.add(new_schein)
-    db.session.commit()
+    db.session.flush()  # IDs vor Commit erhalten
+    return new_schein
 
 def get_lottoscheine_from_db():
     """Holt alle Lottoscheine aus der Datenbank."""
@@ -133,7 +134,7 @@ class Feedback(db.Model):
     # Beziehungen
     student = db.relationship('Student', backref='feedbacks')
 
-def save_feedback_to_lottoschein(student_id, schein_id, feedback_text):
+def save_feedback_to_lottoschein(student_id, schein_ids, feedback_text):
     """
     Speichert ein Feedback und verknüpft es mit einem Lottoschein.
     """
@@ -146,10 +147,11 @@ def save_feedback_to_lottoschein(student_id, schein_id, feedback_text):
     db.session.commit()  # Speichern, um Feedback-ID zu erhalten
 
     # Lottoschein aktualisieren
-    schein = Lottoscheine.query.filter_by(id=schein_id).first()
-    if schein:
-        schein.feedback_id = new_feedback.id
-        db.session.commit()
+    for schein in schein_ids:
+        schein = Lottoscheine.query.filter_by(id=schein).first()
+        if schein:
+            schein.feedback_id = new_feedback.id
+    db.session.commit()
 
 def get_feedback_for_schein(schein_id):
     """

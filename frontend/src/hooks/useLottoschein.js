@@ -35,7 +35,7 @@ export function useLottoschein() {
 
   useEffect(() => {
     fetch('http://localhost:5000/get-lottoschein-settings', {
-      method: 'POST',
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
@@ -81,7 +81,7 @@ export function useLottoschein() {
     return true;
   };
 
-  const handleSaveScheine = async() => {
+  const handleSaveScheine = async () => {
     if (validateScheine()) {
       const scheinData = scheine.map(schein => ({
         numbers: schein.getSelectedNumbers()
@@ -97,13 +97,16 @@ export function useLottoschein() {
         });
   
         const data = await response.json();
-        return data;
+        if (data.status === 'success') {
+          return { status: 'success', scheine: data.scheine }; // Rückgabe der Scheine
+        }
+        return { status: 'error', message: data.message };
       } catch (error) {
         console.error('Fehler beim Speichern der Lottoscheine:', error);
-        return { status: 'error', message: error.message};
+        return { status: 'error', message: 'Netzwerkfehler beim Speichern der Lottoscheine.' };
       }
     }
-    return { status: 'error', message: "Etwas ist schief gelaufen."};
+    return { status: 'error', message: 'Jeder Lottoschein muss genau 6 Zahlen enthalten!' };
   };
 
   return {

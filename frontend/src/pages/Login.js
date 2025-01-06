@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
-import useAuth from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import ConfirmationMessage from '../components/ConfirmationMessage'
 import InputField from '../components/InputField';
 import TermsPopup from '../components/TermsPopup';
-import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
-  const { sendAccessCode, validateAccessCode, isAuthenticated } = useAuth();
+  const { sendAccessCode, validateAccessCode  } = useAuth();
   const [email, setEmail] = useState('');
   const [accessCode, setAccessCode] = useState('');
   const [messageType, setMessageType] = useState(null);
   const [confirmationMessage, setConfirmationMessage] = useState(null);
   const [showTermsPopup, setShowTermsPopup] = useState(false);
-  const navigate = useNavigate('');
+  const navigate = useNavigate();
 
   const handleSendAccessCode = async (e) => {
     e.preventDefault();
@@ -30,22 +30,17 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     const response = await validateAccessCode(email, accessCode);
-    if (response.isAdmin) {
-      // Weiterleitung zur Admin-Seite
-      navigate('/admin');
-    } else if (isAuthenticated) {
-      // Weiterleitung zur Lottoschein-Seite
-      navigate('/lottoschein');
-    } else {
-      // Fehlermeldung setzen
-      setConfirmationMessage(response.message);
-      setMessageType('error');
+    console.log('API Response:', response);
+    setConfirmationMessage(response.message);
+    setMessageType(response.status);
+    if (response.status === 'success') {
+      const targetPath = response.isAdmin ? '/admin' : '/lottoschein'; // Zielpfad je nach Rolle
+      navigate(targetPath);
     }
   };
 
   const handleAcceptTerms = async () => {
-    // Nutzungsbedingungen akzeptieren und erneut versuchen
-    const response = await sendAccessCode(email, true); // Übergebe `accept_terms: true`
+    const response = await sendAccessCode(email, true); 
     if (response.status === 'success') {
       setShowTermsPopup(false);
       setConfirmationMessage(response.message);

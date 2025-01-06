@@ -17,7 +17,7 @@ from .kleine_grosse_analyse import *
 # Neue Route: Kombinierte Analyse
 @analysis_routes.route('/user_analysen', methods=['POST'])
 @login_required
-def user_analysen_route():
+def user_analysen_route(user_id):
     """
     Führt alle User-spezifischen Analysen durch und gibt das kombinierte Feedback zurück.
     """

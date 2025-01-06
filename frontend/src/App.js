@@ -1,24 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router} from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import './styles/index.css';
 import Header from './components/Header';
 import Body from './components/Body';
 import Footer from './components/Footer';
 import CookieConsent from 'react-cookie-consent';
 import Cookies from 'js-cookie';
-import useAuth from './hooks/useAuth'
+import { AuthProvider } from './context/AuthContext';
 
 function App() {
-  const {
-    isAuthenticated,
-    logout, // Logout-Funktion vom Hook
-    sessionTimeLeft, // Verbleibende Session-Zeit
-  } = useAuth();
-
   const [cookiesAccepted, setCookiesAccepted] = useState(false);
 
   useEffect(() => {
-    // Überprüfen, ob der Benutzer bereits Cookies akzeptiert hat
     const accepted = Cookies.get('cookiesAccepted');
     if (accepted) {
       setCookiesAccepted(true);
@@ -26,24 +19,16 @@ function App() {
   }, []);
 
   const handleAcceptCookies = () => {
-    // Setze ein Cookie, um zu speichern, dass der Benutzer Cookies akzeptiert hat
     Cookies.set('cookiesAccepted', true, { expires: 365 });
     setCookiesAccepted(true);
     console.log('Cookies accepted');
   };
 
-  useEffect(() => {
-    // Überprüfen, ob der Benutzer bereits Cookies akzeptiert hat
-    const accepted = Cookies.get('cookiesAccepted');
-    if (accepted) {
-      setCookiesAccepted(true);
-    }
-  }, []);
-
   return (
+    <AuthProvider>
     <Router>
       <div className="flex flex-col items-center min-h-screen bg-lightGray">
-        <Header onLogout={logout} sessionTimeLeft={sessionTimeLeft} isLoggedIn={isAuthenticated} />
+        <Header />
         <Body />
         <Footer />
         {!cookiesAccepted && (
@@ -62,6 +47,7 @@ function App() {
         )}
       </div>
     </Router>
+    </AuthProvider>
   );
 }
 

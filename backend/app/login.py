@@ -114,14 +114,14 @@ def validate_access_code():
             db.session.commit()
 
             access_token = create_jwt_token(student.id)
-            return jsonify({'status': 'success', 'message': 'Login erfolgreich!', 'access_token': access_token}), 200
+            return jsonify({'status': 'success', 'message': 'Login erfolgreich!', 'access_token': access_token, 'isAdmin': False }), 200
 
     # Versuch 2: Admin mit Passwort einloggen
     admin = get_admin_from_db(email)
     if admin:
         if check_password_hash(admin.password, submitted_code): 
             admin_token = create_jwt_token(admin.id, is_admin=True)
-            return jsonify({'status': 'success', 'message': 'Admin-Login erfolgreich!', 'access_token': admin_token}), 200
+            return jsonify({'status': 'success', 'message': 'Admin-Login erfolgreich!', 'access_token': admin_token, 'isAdmin': True }), 200
         else:
             return jsonify({'status': 'error', 'message': 'Ungültiges Passwort für Admin.'}), 401
 

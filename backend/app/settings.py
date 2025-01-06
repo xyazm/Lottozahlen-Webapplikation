@@ -14,7 +14,7 @@ def validate_terms_accepted(student_id):
 
 @settings_routes.route('/get-lottoschein-settings', methods=['GET'])
 @login_required
-def get_lottoschein_settings():
+def get_lottoschein_settings(user_id):
     """Hole die Lottoschein-Einstellungen für reguläre Benutzer."""
     settings = load_settings()
     if settings:
@@ -24,7 +24,7 @@ def get_lottoschein_settings():
 
 @settings_routes.route('/save-lottoscheine', methods=['POST'])
 @login_required
-def save_lottoschein():
+def save_lottoschein(user_id):
     """Speichere Lottoscheine für einen Benutzer."""
     data = request.get_json()
     student_id = get_jwt_identity()
@@ -36,15 +36,18 @@ def save_lottoschein():
 
     if not scheine:
         return jsonify({'status': 'error', 'message': 'Keine gültigen Scheine erhalten.'}), 400
+    
+    saved_scheine = []
 
     # Jeden Schein für den Benutzer speichern
     for schein in scheine:
         lottoschein = schein.get('numbers')
         if not lottoschein or len(lottoschein) != 6:
             return jsonify({'status': 'error', 'message': 'Jeder Lottoschein muss genau 6 Zahlen enthalten.'}), 400
-        save_lottoschein_to_db(student_id=student_id, lottozahlen=lottoschein)
+        new_schein = save_lottoschein_to_db(student_id=student_id, lottozahlen=lottoschein)
+        saved_scheine.append({'id': new_schein.id, 'numbers': lottoschein})
 
-    return jsonify({'status': 'success', 'message': 'Alle Lottoscheine wurden erfolgreich gespeichert.'}), 200
+    return jsonify({'status': 'success', 'message': 'Alle Lottoscheine wurden erfolgreich gespeichert.', 'scheine' : saved_scheine}), 200
 
 @settings_routes.route('/admin/settings', methods=['GET'])
 @login_required_admin
