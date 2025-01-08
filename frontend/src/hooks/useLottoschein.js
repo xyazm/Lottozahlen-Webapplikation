@@ -30,7 +30,12 @@ export function useLottoschein() {
   const [alertPosition, setAlertPosition] = useState({ x: 0, y: 0 });
   const [anzahl, setAnzahl] = useState(0);
   const [scheine, setScheine] = useState([]);
-  const [useFeedback, setUseFeedback] = useState(true);
+  const [showFeedback, setShowFeedback] = useState(true);
+  const [aifeedback, setAiFeedback] = useState('');
+  const [codedfeedback, setCodedFeedback] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); 
+  
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -44,7 +49,7 @@ export function useLottoschein() {
       .then(data => {
         if (data && !data.error) {
           setAnzahl(data.anzahl);
-          setUseFeedback(data.feedback)
+          setShowFeedback(data.feedback)
         }
       })
       .catch(error => console.error('Fehler beim Abrufen der Einstellungen:', error));
@@ -81,26 +86,33 @@ export function useLottoschein() {
     return true;
   };
 
-  const handleSaveScheine = async () => {
+  const handleSave = async () => {
     if (validateScheine()) {
-      const scheinData = scheine.map(schein => ({
-        numbers: schein.getSelectedNumbers()
-      }));
+      const scheinData = scheine.map((schein) => schein.getSelectedNumbers());
+      setIsLoading(true);
+      setIsSubmitted(true);
+
+      // Feedback generieren
+      await generateCombinedFeedback(scheinData);
+      await generateAIFeedback(scheinData);
+
+      const combinedFeedback = `${codedfeedback}\n\n${aifeedback}`;
+
       try {
-        const response = await fetch('http://localhost:5000/save-lottoscheine', {
+        const response = await fetch('http://localhost:5000/save-feedback-and-lottoscheine', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ scheine: scheinData }),
+          body: JSON.stringify({
+            feedback_text: combinedFeedback,
+            scheine: scheinData
+          }),
         });
   
         const data = await response.json();
-        if (data.status === 'success') {
-          return { status: 'success', scheine: data.scheine }; // Rückgabe der Scheine
-        }
-        return { status: 'error', message: data.message };
+        return data;
       } catch (error) {
         console.error('Fehler beim Speichern der Lottoscheine:', error);
         return { status: 'error', message: 'Netzwerkfehler beim Speichern der Lottoscheine.' };
@@ -109,14 +121,80 @@ export function useLottoschein() {
     return { status: 'error', message: 'Jeder Lottoschein muss genau 6 Zahlen enthalten!' };
   };
 
+    // Funktion für das AI-generierte Feedback
+    const generateAIFeedback = async (scheine) => {
+      setIsLoading(true);
+      // try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:5000/predict', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ scheine }),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Fehler bei der AI-Feedback-Anfrage: ${response.statusText}`);
+        }
+  
+        const data = await response.json();
+        if (data.error) {
+          throw new Error(data.error);
+        }
+  
+        setAiFeedback(data.prediction); // Setze AI-generiertes Feedback
+      // } catch (err) {
+      //   setError(err.message);
+      // } finally {
+        setIsLoading(false);
+      //}
+    };
+  
+    // Funktion für das kombinierte Feedback aus der neuen Route
+    const generateCombinedFeedback = async (scheine) => {
+      setIsLoading(true);
+      // setError(null);
+      // try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:5000/user_analysen', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ scheine }),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Fehler bei der kombinierten Feedback-Anfrage: ${response.statusText}`);
+        }
+  
+        const data = await response.json();
+        if (data.error) {
+          throw new Error(data.error);
+        }
+  
+        setCodedFeedback(data.coded_feedback); // Setze kombiniertes Feedback
+      // } catch (err) {
+      //   setError(err.message);
+      // } finally {
+      //   setIsLoading(false);
+      // }
+    };
+
   return {
     showAlert,
     alertMessage,
     alertPosition,
     scheine,
-    useFeedback,
+    showFeedback,
     handleToggleNumber,
     setAlertPosition,
-    handleSaveScheine
+    handleSave,
+    aifeedback,
+    codedfeedback,
+    isLoading
   };
 }

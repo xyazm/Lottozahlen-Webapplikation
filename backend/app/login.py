@@ -46,6 +46,9 @@ def student_login():
     name_part = email.split('@')[0]
     vorname, nachname = name_part.split('.')
 
+    vorname = vorname.capitalize()
+    nachname = nachname.capitalize()
+
     new_student = Student(
         nachname=nachname,
         vorname=vorname,
