@@ -91,11 +91,10 @@ def user_verteilungsanalyse_route(user_scheine):
 
         ergebnisse = []
         for schein in user_scheine:
-            zahlen = schein.get('numbers', [])
-            if len(zahlen) != 6:
+            if len(schein) != 6:
                 return jsonify({'error': f"Ungültiger Schein: {schein}"}), 400
 
-            gitter, positionen = berechne_gitter_und_positionen(zahlen)
+            gitter, positionen = berechne_gitter_und_positionen(schein)
             zeilen_std, spalten_std = analysiere_zeilen_und_spalten(gitter)
             durchschnittliche_distanz = berechne_paarweise_distanzen(positionen)
             quadranten_std = analysiere_quadranten(positionen)

@@ -21,19 +21,23 @@ def admin_update_settings():
 
 
 # SELECT 
+#     s.id AS student_id,
+#     CONCAT(s.nachname, ', ', s.vorname) AS student_name,
 #     f.id AS feedback_id,
-#     GROUP_CONCAT(CONCAT(
-#         l.lottozahl1, ',', l.lottozahl2, ',', 
-#         l.lottozahl3, ',', l.lottozahl4, ',', 
-#         l.lottozahl5, ',', l.lottozahl6
-#     )) AS lottoscheine,
-#     f.feedback_text AS feedback,
-#     CONCAT(s.vorname, ' ', s.nachname) AS student_name
+#     f.feedback_text,
+#     GROUP_CONCAT(l.id ORDER BY l.id SEPARATOR ', ') AS lottoschein_ids,
+#     GROUP_CONCAT(
+#         CONCAT(l.lottozahl1, '-', l.lottozahl2, '-', l.lottozahl3, '-', l.lottozahl4, '-', l.lottozahl5, '-', l.lottozahl6)
+#         ORDER BY l.id
+#         SEPARATOR '; '
+#     ) AS lottoscheine
 # FROM 
 #     feedback f
 # JOIN 
-#     lottoscheine l ON f.id = l.feedback_id
-# JOIN 
-#     student s ON l.student_id = s.id
+#     student s ON f.student_id = s.id
+# LEFT JOIN 
+#     lottoscheine l ON l.feedback_id = f.id
 # GROUP BY 
-#     f.id, f.feedback_text, s.vorname, s.nachname;
+#     f.id
+# ORDER BY 
+#     s.id, f.id;

@@ -75,10 +75,9 @@ def user_ungeradeanalyse_route(user_scheine):
         # Ergebnisse berechnen
         kombinationen = Counter()
         for schein in user_scheine:
-            zahlen = schein.get('numbers', [])
-            if len(zahlen) != 6:
+            if len(schein) != 6:
                 return jsonify({'error': f"Ungültiger Schein: {schein}"}), 400
-            kombination = berechne_gerade_ungerade_kombinationen(zahlen)
+            kombination = berechne_gerade_ungerade_kombinationen(schein)
             kombinationen[kombination] += 1
 
         # Feedback generieren

@@ -13,14 +13,9 @@ def berechne_haeufigkeit(scheine):
     """
     zahlen = []
     for schein in scheine:
-        zahlen.extend([
-            schein.lottozahl1, 
-            schein.lottozahl2, 
-            schein.lottozahl3, 
-            schein.lottozahl4, 
-            schein.lottozahl5, 
-            schein.lottozahl6
-        ])
+        if len(schein) != 6:
+            raise ValueError("Jeder Schein muss genau 6 Zahlen enthalten.")
+        zahlen.extend(schein)
 
     haeufigkeit = Counter(zahlen)
     return haeufigkeit

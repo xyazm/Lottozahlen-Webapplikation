@@ -93,12 +93,11 @@ def user_gitteranalyse_route(user_scheine):
         # Ergebnisse berechnen
         results = []
         for schein in user_scheine:
-            zahlen = schein.get('numbers', [])
-            if len(zahlen) != 6:
+            if len(schein) != 6:
                 results.append({'error': 'Ungültige Anzahl von Zahlen.'})
                 continue
 
-            gitter = erstelle_gitter(zahlen)
+            gitter = erstelle_gitter(schein)
             zeilen_count, spalten_count = analysiere_gitter(gitter)
             results.append({'zeilen': zeilen_count.tolist(), 'spalten': spalten_count.tolist()})
 

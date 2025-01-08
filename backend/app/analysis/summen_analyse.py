@@ -86,10 +86,9 @@ def user_summenanalyse_route(user_scheine):
         # Summen berechnen und kategorisieren
         summen_counter = Counter()
         for schein in user_scheine:
-            zahlen = schein.get('numbers', [])
-            if len(zahlen) != 6:
+            if len(schein) != 6:
                 return jsonify({'error': f"Ungültiger Schein: {schein}"}), 400
-            summe = sum(zahlen)
+            summe = sum(schein)
             kategorie = kategorie_bestimmen(summe, summenkategorien)
             if kategorie:
                 summen_counter[kategorie] += 1

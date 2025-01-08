@@ -79,11 +79,10 @@ def user_aufeinanderfolgende_reihen_route(user_scheine):
         # Analyse durchführen
         results = []
         for index, schein in enumerate(user_scheine):
-            zahlen = schein.get('numbers', [])
-            if len(zahlen) != 6:
+            if len(schein) != 6:
                 results.append({'Schein_Index': index + 1, 'error': 'Ungültige Anzahl von Zahlen.'})
                 continue
-            sequence_counts = count_sequences(zahlen, range(2, 7))
+            sequence_counts = count_sequences(schein, range(2, 7))
             results.append({'Schein_Index': index + 1, **sequence_counts})
 
         feedback = generate_feedback(results)

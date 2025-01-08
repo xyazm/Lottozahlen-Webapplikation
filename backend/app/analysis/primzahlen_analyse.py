@@ -67,7 +67,7 @@ def user_primzahlenanalyse_route(user_scheine):
 
         # Ergebnisse berechnen
         anzahl_primzahlen_pro_schein = [
-            berechne_primzahlen_anzahl(schein.get('numbers', []), primzahlen_set)
+            berechne_primzahlen_anzahl(schein, primzahlen_set)
             for schein in user_scheine
         ]
 

@@ -62,10 +62,9 @@ def user_kleingrossanalyse_route(user_scheine):
         # Ergebnisse berechnen
         kombinationen = Counter()
         for schein in user_scheine:
-            zahlen = schein.get('numbers', [])
-            if len(zahlen) != 6:
+            if len(schein) != 6:
                 return jsonify({'error': f"Ungültiger Schein: {schein}"}), 400
-            kombination = berechne_kleine_grosse_kombination(zahlen)
+            kombination = berechne_kleine_grosse_kombination(schein)
             kombinationen[kombination] += 1
 
         # Feedback generieren

@@ -195,6 +195,7 @@ export function useLottoschein() {
     handleSave,
     aifeedback,
     codedfeedback,
-    isLoading
+    isLoading,
+    isSubmitted
   };
 }

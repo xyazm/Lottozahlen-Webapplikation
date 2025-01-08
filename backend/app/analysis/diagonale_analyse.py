@@ -83,11 +83,10 @@ def user_diagonaleanalyse_route(user_scheine):
         # Ergebnisse berechnen
         results = []
         for schein in user_scheine:
-            zahlen = schein.get('numbers', [])
-            if len(zahlen) != 6:
+            if len(schein) != 6:
                 results.append({})
                 continue
-            results.append(berechne_sequenzen(zahlen, diagonalen))
+            results.append(berechne_sequenzen(schein, diagonalen))
 
         # Feedback generieren
         feedback = generate_user_feedback(results)
