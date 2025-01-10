@@ -3,7 +3,9 @@ import { useLottoManagement } from '../../hooks/useLottoManagement';
 import DownSvg from '../../assets/down.svg';
 import UpSvg from '../../assets/up.svg';
 import Button from '../../components/Button';
-import HelpSvg from '../../assets/help.svg';
+import { ReactComponent as HelpSvg } from '../../assets/help.svg';
+import { ReactComponent as ControllerNextSvg } from '../../assets/controller-next.svg';
+import { ReactComponent as ControllerPrevSvg } from '../../assets/controller-jump-to-start.svg';
 
 const LottoManagement = () => {
   const {
@@ -52,13 +54,9 @@ const LottoManagement = () => {
         />
         {/* Tooltip-Button */}
   <div className="relative">
-    <button
-      type="button"
-      className="text-rubBlue hover:text-rubBlue"
-      onClick={toggleTooltip}
-    >
-      <img src={HelpSvg} alt="Hilfe" className="h-4 w-4 cursor-pointer" />
-    </button>
+      <div className="cursor-pointer" onClick={toggleTooltip}>
+        <HelpSvg className="w-4 fill-rubBlue hover:fill-gray-300" />
+      </div>
 
     {/* Tooltip-Inhalt */}
     {showTooltip && (
@@ -78,7 +76,7 @@ const LottoManagement = () => {
 
         {/* Dropdown-Filter */}
         <div className="relative" ref={dropdownRef}>
-          <Button buttonId='button-filter-db' text='Filter' onClick={toggleFilterDropdown} className='h-10 px-4 !bg-gray-200 text-black'/>
+          <Button buttonId='button-filter-db' text='Filter' onClick={toggleFilterDropdown} className='h-10 px-4 !bg-gray-200 !text-gray-400'/>
           {isFilterOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
               {columnOptions.map((option) => (
@@ -174,30 +172,28 @@ const LottoManagement = () => {
 </div>
 
     {/* Pagination-Buttons */}
-    <div className="flex justify-between items-center mt-4">
-      <button
-        onClick={handlePreviousPage}
-        disabled={currentPage === 1}
-        className={`px-4 py-2 border rounded ${
-          currentPage === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-rubBlue text-white'
-        }`}
+    <div className="flex justify-center items-center mt-4">
+    <div
+      className={`cursor-pointer ${
+        currentPage === 1 ? 'fill-gray-400 cursor-not-allowed' : 'fill-rubBlue hover:fill-gray-300'
+      }`}
+      onClick={currentPage === 1 ? null : handlePreviousPage}
       >
-        Zurück
-      </button>
-      <span>
+      <ControllerPrevSvg className=" m-2 w-4 " />
+    </div>
+      <span className="text-gray-600 font-medium text-sm font-sans">
         Seite {currentPage} von {totalPages}
       </span>
-      <button
-        onClick={handleNextPage}
-        disabled={currentPage === totalPages}
-        className={`px-4 py-2 border rounded ${
-          currentPage === totalPages ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-rubBlue text-white'
-        }`}
+    <div
+      className={`cursor-pointer ${
+        currentPage === totalPages ? 'fill-gray-400 cursor-not-allowed' : 'fill-rubBlue hover:fill-gray-300'
+      }`}
+      onClick={currentPage === totalPages ? null : handleNextPage}
       >
-        Weiter
-      </button>
+      <ControllerNextSvg className="m-2 w-4" />
     </div>
-    </div>
+  </div>
+  </div>
   );
 };
 
