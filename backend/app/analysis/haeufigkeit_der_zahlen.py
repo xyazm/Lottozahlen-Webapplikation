@@ -13,9 +13,17 @@ def berechne_haeufigkeit(scheine):
     """
     zahlen = []
     for schein in scheine:
-        if len(schein) != 6:
+        zahlen_liste = [
+            schein.lottozahl1,
+            schein.lottozahl2,
+            schein.lottozahl3,
+            schein.lottozahl4,
+            schein.lottozahl5,
+            schein.lottozahl6,
+        ]
+        if len(zahlen_liste) != 6:
             raise ValueError("Jeder Schein muss genau 6 Zahlen enthalten.")
-        zahlen.extend(schein)
+        zahlen.extend(zahlen_liste)
 
     haeufigkeit = Counter(zahlen)
     return haeufigkeit
@@ -76,7 +84,13 @@ def user_haeufigkeit_route(user_scheine):
         if not user_scheine:
             return jsonify({'error': 'Keine Lottoscheine übergeben.'}), 400
         
-        haeufigkeit = berechne_haeufigkeit(user_scheine)
+        zahlen = []
+        for schein in user_scheine:
+            if len(schein) != 6:  # Prüfen, ob jeder Schein genau 6 Zahlen enthält
+                raise ValueError("Jeder Schein muss genau 6 Zahlen enthalten.")
+            zahlen.extend(schein)  # Füge die Zahlen des Scheins zur Gesamtliste hinzu
+
+        haeufigkeit = Counter(zahlen)
 
         # Feedback generieren
         feedback = generate_haeufigkeit_feedback(haeufigkeit)

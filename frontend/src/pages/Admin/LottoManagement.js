@@ -1,89 +1,39 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef, useState } from 'react';
+import { useLottoManagement } from '../../hooks/useLottoManagement';
 import DownSvg from '../../assets/down.svg';
 import UpSvg from '../../assets/up.svg';
 import Button from '../../components/Button';
+import HelpSvg from '../../assets/help.svg';
 
 const LottoManagement = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterColumns, setFilterColumns] = useState(['id', 'lottoschein', 'feedback', 'name']);
-  const [tableData, setTableData] = useState([]);
-  const [isFilterOpen, setIsFilterOpen] = useState(false); // Dropdown-Status
-  const [sortConfig, setSortConfig] = useState({ key: '', direction: '' });
+  const {
+    tableData,
+    searchQuery,
+    setSearchQuery,
+    filterColumns,
+    handleFilterChange,
+    toggleFilterDropdown,
+    isFilterOpen,
+    handleSort,
+    handleSearch,
+    sortConfig,
+  } = useLottoManagement();
   const dropdownRef = useRef(null); // Referenz auf den Dropdown-Container
+  const [showTooltip, setShowTooltip] = useState(false);
 
-  // Beispiel-Daten
-  useEffect(() => {
-    const exampleData = [
-      { id: 1, lottoschein: '123456', feedback: 'Positiv', name: 'Max Mustermann' },
-      { id: 2, lottoschein: '654321', feedback: 'Negativ', name: 'Erika Musterfrau' },
-      { id: 3, lottoschein: '789123', feedback: 'Positiv', name: 'John Doe' },
-      { id: 4, lottoschein: '321987', feedback: 'Neutral', name: 'Jane Smith' },
-    ];
-    setTableData(exampleData);
-  }, []);
+  const toggleTooltip = () => {
+    setShowTooltip(true);
+    setTimeout(() => setShowTooltip(false), 5000);
+  };
 
   const columnOptions = [
-    { key: 'id', label: 'ID', width: '10%', sortable: true }, // Sortierbar
-    { key: 'lottoschein', label: 'Lottoschein', width: '30%', sortable: false }, // Nicht sortierbar
-    { key: 'feedback', label: 'Feedback', width: '30%', sortable: false }, // Nicht sortierbar
-    { key: 'name', label: 'Name', width: '30%', sortable: true }, // Sortierbar
+    { key: 'feedback_id', label: 'ID', width: '8%', sortable: true }, 
+    { key: 'lottoschein_ids', label: 'L-IDs', width: '10%', sortable: true }, 
+    { key: 'lottoscheine', label: 'Lottoscheine', width: '20%', sortable: false },
+    { key: 'feedback_text', label: 'Feedback', width: '40%', sortable: false }, 
+    { key: 'student_id', label: 'S-ID', width: '8%', sortable: true },
+    { key: 'student_name', label: 'Name', width: '20%', sortable: true }, 
   ];
-
-    // Sortierfunktion
-    const handleSort = (key) => {
-      if (!key) return;
-  
-      let direction = 'asc';
-      if (sortConfig.key === key && sortConfig.direction === 'asc') {
-        direction = 'desc';
-      }
-  
-      const sortedData = [...tableData].sort((a, b) => {
-        if (a[key] < b[key]) return direction === 'asc' ? -1 : 1;
-        if (a[key] > b[key]) return direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-  
-      setTableData(sortedData);
-      setSortConfig({ key, direction });
-    };
-
-  const handleSearch = () => {
-    const filteredData = tableData.filter((row) =>
-      Object.values(row).some((value) =>
-        value.toString().toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    );
-    setTableData(filteredData);
-  };
-
-  const handleFilterChange = (key) => {
-    if (filterColumns.includes(key)) {
-      setFilterColumns(filterColumns.filter((col) => col !== key)); // Entferne Spalte
-    } else {
-      setFilterColumns([...filterColumns, key]); // Füge Spalte hinzu
-    }
-  };
-
-  // Öffnet oder schließt das Dropdown-Menü
-  const toggleFilterDropdown = () => {
-    setIsFilterOpen(!isFilterOpen);
-  };
-
-  // Schließt das Dropdown, wenn der Benutzer außerhalb klickt
-  const handleClickOutside = (event) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setIsFilterOpen(false);
-    }
-  };
-
-  // Füge einen Event-Listener hinzu, um auf "klicken außerhalb" zu hören
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   return (
     <div className="p-6 min-h-screen">
@@ -96,13 +46,31 @@ const LottoManagement = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+        {/* Tooltip-Button */}
+  <div className="relative">
+    <button
+      type="button"
+      className="text-rubBlue hover:text-rubBlue"
+      onClick={toggleTooltip}
+    >
+      <img src={HelpSvg} alt="Hilfe" className="h-4 w-4 cursor-pointer" />
+    </button>
+
+    {/* Tooltip-Inhalt */}
+    {showTooltip && (
+      <div className="absolute left-[20px] top-[-10px] z-50 p-3 bg-gray-900 text-white border border-gray-300 rounded shadow-lg w-80">
+        <h4 className="text-sm font-semibold mb-2">Suchanleitung:</h4>
+        <ul className="text-xs list-disc list-inside">
+          <li><b>student_id</b>: Suche nach einem Studenten anhand der ID, z.B. <i>student_id:17</i></li>
+          <li><b>student_name</b>: Suche nach einem Namen, z.B. <i>student_name:Mustermann</i></li>
+          <li><b>feedback_id</b>: Suche nach einer ID, z.B. <i>feedback_id:17</i></li>
+          <li><b>lottoschein_ids</b>: Suche nach Lotto-IDs, z.B. <i>lottoschein_ids:123</i></li>
+          <li><b>lottoscheine</b>: Suche nach bestimmten Zahlen, z.B. <i>lottoscheine:34,35</i></li>
+        </ul>
+      </div>
+    )}
+  </div>
         <Button buttonId='button-search-db' text='Suchen' onClick={handleSearch} className='h-10 px-4'/>
-         {/* <button
-          onClick={handleSearch}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-        >
-          Suchen
-        </button> */}
 
         {/* Dropdown-Filter */}
         <div className="relative" ref={dropdownRef}>
@@ -174,20 +142,30 @@ const LottoManagement = () => {
       </tr>
     </thead>
     <tbody>
-      {/* Dynamische Tabellenzeilen */}
-      {tableData.map((row) => (
-        <tr key={row.id} className="hover:bg-gray-50">
-          {columnOptions.map(
-            (option) =>
-              filterColumns.includes(option.key) && (
-                <td key={option.key} className="p-4 border-b text-left">
+  {tableData.map((row) => (
+    <tr key={row.feedback_id} className="hover:bg-gray-50">
+      {columnOptions.map((option) => {
+        if (filterColumns.includes(option.key)) {
+          return (
+            <td
+              key={`${row.feedback_id}-${option.key}`}
+              className="p-4 border-b text-left whitespace-pre-wrap"
+            >
+              {option.key === 'feedback_text' ? (
+                <div className="h-[200px] overflow-y-auto resize-y">
                   {row[option.key]}
-                </td>
-              )
-          )}
-        </tr>
-      ))}
-    </tbody>
+                </div>
+              ) : (
+                row[option.key]
+              )}
+            </td>
+          );
+        }
+        return null;
+      })}
+    </tr>
+  ))}
+</tbody>
   </table>
 </div>
     </div>

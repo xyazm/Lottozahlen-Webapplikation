@@ -92,11 +92,10 @@ export function useLottoschein() {
       setIsLoading(true);
       setIsSubmitted(true);
 
-      // Feedback generieren
-      await generateCombinedFeedback(scheinData);
-      await generateAIFeedback(scheinData);
+      const codedFeedback = await generateCombinedFeedback(scheinData);
+      const aiFeedback = await generateAIFeedback(scheinData);
 
-      const combinedFeedback = `${codedfeedback}\n\n${aifeedback}`;
+      const combinedFeedback = `${codedFeedback}\n\n${aiFeedback}`;
 
       try {
         const response = await fetch('http://localhost:5000/save-feedback-and-lottoscheine', {
@@ -144,12 +143,9 @@ export function useLottoschein() {
           throw new Error(data.error);
         }
   
-        setAiFeedback(data.prediction); // Setze AI-generiertes Feedback
-      // } catch (err) {
-      //   setError(err.message);
-      // } finally {
+        setAiFeedback(data.prediction); 
         setIsLoading(false);
-      //}
+        return data.prediction;
     };
   
     // Funktion für das kombinierte Feedback aus der neuen Route
@@ -176,12 +172,8 @@ export function useLottoschein() {
           throw new Error(data.error);
         }
   
-        setCodedFeedback(data.coded_feedback); // Setze kombiniertes Feedback
-      // } catch (err) {
-      //   setError(err.message);
-      // } finally {
-      //   setIsLoading(false);
-      // }
+        setCodedFeedback(data.coded_feedback); 
+        return data.coded_feedback;
     };
 
   return {
