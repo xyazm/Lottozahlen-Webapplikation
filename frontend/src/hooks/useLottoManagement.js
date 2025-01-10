@@ -13,8 +13,30 @@ export function useLottoManagement() {
     ]);
   const [sortConfig, setSortConfig] = useState({ key: '', direction: '' });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1); // Aktuelle Seite
+  const entriesPerPage = 50;
   const dropdownRef = useRef(null);
   const token = localStorage.getItem('token');
+
+        // Berechne die Einträge, die auf der aktuellen Seite angezeigt werden sollen
+    const paginatedData = tableData.slice(
+        (currentPage - 1) * entriesPerPage,
+        currentPage * entriesPerPage
+    );
+        
+    const totalPages = Math.ceil(tableData.length / entriesPerPage); // Gesamtanzahl der Seiten
+        
+    const handleNextPage = () => {
+    if (currentPage < totalPages) {
+        setCurrentPage((prevPage) => prevPage + 1);
+    }
+    };
+        
+    const handlePreviousPage = () => {
+    if (currentPage > 1) {
+        setCurrentPage((prevPage) => prevPage - 1);
+    }
+    };
 
   const fetchData = async () => {
     try {
@@ -128,8 +150,12 @@ export function useLottoManagement() {
   }, []);
 
   return {
-    tableData,
+    tableData: paginatedData,
     setTableData,
+    currentPage,
+    totalPages,
+    handleNextPage,
+    handlePreviousPage,
     searchQuery,
     setSearchQuery,
     filterColumns,

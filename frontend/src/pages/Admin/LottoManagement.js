@@ -8,6 +8,10 @@ import HelpSvg from '../../assets/help.svg';
 const LottoManagement = () => {
   const {
     tableData,
+    currentPage,
+    totalPages,
+    handleNextPage,
+    handlePreviousPage,
     searchQuery,
     setSearchQuery,
     filterColumns,
@@ -168,6 +172,31 @@ const LottoManagement = () => {
 </tbody>
   </table>
 </div>
+
+    {/* Pagination-Buttons */}
+    <div className="flex justify-between items-center mt-4">
+      <button
+        onClick={handlePreviousPage}
+        disabled={currentPage === 1}
+        className={`px-4 py-2 border rounded ${
+          currentPage === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-rubBlue text-white'
+        }`}
+      >
+        Zurück
+      </button>
+      <span>
+        Seite {currentPage} von {totalPages}
+      </span>
+      <button
+        onClick={handleNextPage}
+        disabled={currentPage === totalPages}
+        className={`px-4 py-2 border rounded ${
+          currentPage === totalPages ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-rubBlue text-white'
+        }`}
+      >
+        Weiter
+      </button>
+    </div>
     </div>
   );
 };
