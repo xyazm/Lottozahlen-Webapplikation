@@ -20,6 +20,21 @@ def admin_update_settings():
     save_settings(new_settings)
     return jsonify({'status': 'success', 'message': 'Einstellungen erfolgreich gespeichert.'}), 200
 
+def sort_lottozahlen(data):
+    # Gehe durch die Daten und sortiere die Lottozahlen
+    for row in data:
+        sorted_lottoscheine = []
+        for schein in row["lottoscheine"].split("\n"):
+            # Extrahiere die Zahlen aus dem Schein, sortiere sie und füge sie wieder zusammen
+            zahlen = list(map(int, schein.split('-')))
+            zahlen.sort()
+            sorted_lottoscheine.append('-'.join(map(str, zahlen)))
+        
+        # Aktualisiere die sortierten Scheine
+        row["lottoscheine"] = "\n".join(sorted_lottoscheine)
+    return data
+
+
 @management_routes.route('/admin/lottomanagement', methods=['GET'])
 @login_required_admin
 def get_lottomanagement_data():
@@ -57,7 +72,9 @@ def get_lottomanagement_data():
     # Konvertiere jede Zeile in ein Dictionary mit Spaltennamen als Schlüssel
     data = [dict(zip(columns, row)) for row in result.fetchall()]
 
-    return jsonify(data)
+    sorted_data=sort_lottozahlen(data)
+
+    return jsonify(sorted_data)
 
 
 # SELECT 

@@ -165,5 +165,6 @@ export function useLottoManagement() {
     handleSort,
     handleSearch,
     sortConfig,
+    dropdownRef,
   };
 }

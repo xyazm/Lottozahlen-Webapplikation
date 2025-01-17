@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './Dashboard';
 import Settings from './Settings';
@@ -8,7 +8,7 @@ import {ReactComponent as DownSvg} from '../../assets/down.svg';
 
 export default function Admin() {
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen ">
       {/* Header mit Dropdown */}
       <header className="p-4 flex justify-between">
       <h2 className='mt-0'>Willkommen im Admin-Bereich!</h2>
@@ -31,6 +31,7 @@ export default function Admin() {
 function AdminDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const dropdownRef = useRef(null);
   const location = useLocation(); // Holt die aktuelle Route
 
   const toggleDropdown = () => {
@@ -58,8 +59,26 @@ function AdminDropdown() {
     }
   };
 
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    // Listener hinzufügen
+    document.addEventListener('mousedown', handleClickOutside);
+
+    // Cleanup: Listener entfernen
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
+
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       {/* Dropdown Button */}
       <button
         onClick={toggleDropdown}

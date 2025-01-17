@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useLottoManagement } from '../../hooks/useLottoManagement';
 import DownSvg from '../../assets/down.svg';
 import UpSvg from '../../assets/up.svg';
@@ -23,8 +23,8 @@ const LottoManagement = () => {
     handleSort,
     handleSearch,
     sortConfig,
+    dropdownRef
   } = useLottoManagement();
-  const dropdownRef = useRef(null); // Referenz auf den Dropdown-Container
   const [showTooltip, setShowTooltip] = useState(false);
 
   const toggleTooltip = () => {
@@ -38,7 +38,7 @@ const LottoManagement = () => {
     { key: 'lottoscheine', label: 'Lottoscheine', width: '20%', sortable: false },
     { key: 'feedback_text', label: 'Feedback', width: '40%', sortable: false }, 
     { key: 'student_id', label: 'S-ID', width: '8%', sortable: true },
-    { key: 'student_name', label: 'Name', width: '20%', sortable: true }, 
+    { key: 'student_name', label: 'Name', width: '17%', sortable: true }, 
   ];
 
   return (
