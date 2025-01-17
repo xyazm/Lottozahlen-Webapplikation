@@ -3,7 +3,7 @@ import json
 from collections import Counter
 from flask import request, jsonify
 from . import analysis_routes, login_required_admin
-from ..database import get_scheinexamples_from_db
+from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db
 import plotly.graph_objects as go
 
 
@@ -121,7 +121,7 @@ def get_summen_combined_plot():
     """
     Führt eine globale Summenanalyse durch und erstellt eine Visualisierung.
     """
-    scheine = get_scheinexamples_from_db()
+    scheine = get_lottoscheine_from_db()
 
     # Summenkategorien definieren
     summenkategorien = summenkategorien_definieren()

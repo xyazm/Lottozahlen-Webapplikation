@@ -54,8 +54,28 @@ function Statistik() {
             {plotData ? (
               <Plot
                 data={plotData}
-                layout={plotLayout}
-                config={{ responsive: true }}
+                layout={{
+                  ...plotLayout,
+                  autosize: true,
+                  margin: { t: 150, b: 40, l: 40, r: 40 }, // Platz für Untertitel und Inhalte
+                }}
+                config={{
+                  responsive: true, // Diagramm passt sich dynamisch an
+                  displayModeBar: true, // Plotly-Buttons anzeigen
+                  modeBarButtonsToRemove: [
+                    "zoom2d",
+                    "pan2d",
+                    "select2d",
+                    "lasso2d",
+                    "zoomIn2d",
+                    "zoomOut2d",
+                    "autoScale2d",
+                    "resetScale2d",
+                    "hoverClosestCartesian",
+                    "hoverCompareCartesian",
+                  ],
+                }}
+                style={{ width: "100%", height: "100%" }}
               />
             ) : (
               <p>Lade {label}...</p>

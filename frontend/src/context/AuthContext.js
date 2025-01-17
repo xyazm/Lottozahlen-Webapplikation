@@ -1,15 +1,18 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 
+// Erstelle den AuthContext
 const AuthContext = createContext();
 
+// Custom Hook für den einfachen Zugriff auf den Context
 export const useAuth = () => {
   return useContext(AuthContext);
 };
 
+// AuthProvider-Komponente zum Bereitstellen des Contexts
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [sessionTimeLeft, setSessionTimeLeft] = useState(1800); 
+  const [sessionTimeLeft, setSessionTimeLeft] = useState(1800); // 30 Minuten Session
   const [timerActive, setTimerActive] = useState(false);
   const sessionTimeoutRef = useRef(null);
 
@@ -19,7 +22,7 @@ export const AuthProvider = ({ children }) => {
     const decodedToken = JSON.parse(atob(token.split('.')[1]));
     setIsAdmin(decodedToken.is_admin);
     setIsAuthenticated(true);
-    startSessionTimer();
+    startSessionTimer(); // Starte den Session-Timer nach Login
   }, []);
 
   // Funktion zum Ausloggen
@@ -29,7 +32,7 @@ export const AuthProvider = ({ children }) => {
     setIsAdmin(false);
     setTimerActive(false);
     setSessionTimeLeft(0);
-    clearTimeout(sessionTimeoutRef.current);
+    clearTimeout(sessionTimeoutRef.current); // Bereinige den Timer
     alert('Deine Sitzung ist abgelaufen. Du wirst nun abgemeldet.');
     window.location.href = '/login';
   }, []);
@@ -37,18 +40,46 @@ export const AuthProvider = ({ children }) => {
   // Funktion zum Starten des Session-Timers
   const startSessionTimer = useCallback(() => {
     setTimerActive(true);
-    setSessionTimeLeft(1800); // 30 Minuten
+    setSessionTimeLeft(1800); // Setze 30 Minuten neu
     resetSessionTimeout();
   }, []);
 
   // Funktion zum Zurücksetzen des Session-Timers
   const resetSessionTimeout = useCallback(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    refreshToken();
     if (sessionTimeoutRef.current) clearTimeout(sessionTimeoutRef.current);
 
     sessionTimeoutRef.current = setTimeout(() => {
       logout();
     }, sessionTimeLeft * 1000);
   }, [logout, sessionTimeLeft]);
+
+    // Funktion zum Erneuern des Tokens
+    const refreshToken = useCallback(async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return; // Wenn kein gültiger Token existiert, abbrechen
+  
+      try {
+        const response = await fetch('http://localhost:5000/refresh-token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        if (response.ok) {
+          const data = await response.json();
+          localStorage.setItem('token', data.access_token);
+        } else {
+          console.error('Token-Erneuerung fehlgeschlagen.');
+        }
+      } catch (error) {
+        console.error('Fehler bei der Token-Erneuerung:', error);
+      }
+    }, []);
 
   // API-Anfrage zum Versenden des Zugangscodes
   const sendAccessCode = async (email, acceptTerms = false) => {

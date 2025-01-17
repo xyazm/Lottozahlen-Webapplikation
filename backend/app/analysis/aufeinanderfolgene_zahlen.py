@@ -3,7 +3,7 @@ from flask import request, jsonify
 import json
 import plotly.express as px
 from . import analysis_routes, login_required_admin
-from ..database import get_scheinexamples_from_db
+from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db
 
 
 reihenlaenge_labels = {
@@ -101,7 +101,7 @@ def aufeinanderfolgende_reihen_route():
     Analysiert die aufeinanderfolgenden Reihen in allen Scheinen der Datenbank.
     """
     try:
-        scheine = get_scheinexamples_from_db()
+        scheine = get_lottoscheine_from_db()
 
         # Analyse durchführen
         results = []

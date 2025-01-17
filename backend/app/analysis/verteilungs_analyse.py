@@ -4,7 +4,8 @@ import json
 from flask import request, jsonify
 import plotly.express as px
 from . import analysis_routes, login_required_admin
-from ..database import get_scheinexamples_from_db
+from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db
+from .chi_quadrat import chi_quadrat_verteilung
 
 
 # Hilfsfunktion: Gitter und Positionen berechnen
@@ -65,7 +66,7 @@ def analysiere_quadranten(positionen):
 
 
 # Hilfsfunktion: Feedback generieren
-def generate_verteilungs_feedback(ergebnisse):
+def generate_verteilungs_feedback(ergebnisse,df):
     """
     Generiert Feedback basierend auf der Verteilungsanalyse.
     """
@@ -76,6 +77,7 @@ def generate_verteilungs_feedback(ergebnisse):
     feedback.append(f"Durchschnittliche Standardabweichung der Spalten: {ergebnisse['Spalten_STD']:.2f}\n")
     feedback.append(f"Durchschnittliche Distanz zwischen Zahlen: {ergebnisse['Durchschnittliche_Distanz']:.2f}\n")
     feedback.append(f"Standardabweichung der Zahlen in Quadranten: {ergebnisse['Quadranten_STD']:.2f}\n")
+    feedback.append(chi_quadrat_verteilung(df))
     return feedback
 
 
@@ -106,8 +108,10 @@ def user_verteilungsanalyse_route(user_scheine):
                 'Quadranten_STD': quadranten_std
             })
 
+        df = pd.DataFrame(ergebnisse).mean().reset_index()
+        df.columns = ['Metrik', 'Durchschnittswert']
         # Feedback generieren
-        feedback = generate_verteilungs_feedback(pd.DataFrame(ergebnisse).mean().to_dict())
+        feedback = generate_verteilungs_feedback(pd.DataFrame(ergebnisse).mean().to_dict(), df)
         # return jsonify({'feedback': feedback})
         return feedback
     except Exception as e:
@@ -134,7 +138,7 @@ def analyse_verteilung_und_distanz():
     """
     Führt eine globale Verteilungsanalyse durch und erstellt eine Visualisierung.
     """
-    scheine = get_scheinexamples_from_db()
+    scheine = get_lottoscheine_from_db()
 
     ergebnisse = []
     for schein in scheine:
@@ -157,6 +161,7 @@ def analyse_verteilung_und_distanz():
     df = pd.DataFrame(ergebnisse)
     summary = df.mean().reset_index()
     summary.columns = ['Metrik', 'Durchschnittswert']
+    chi_test = chi_quadrat_verteilung(summary)
 
     # Hover-Beschreibungen
     hover_texts = {
@@ -172,14 +177,12 @@ def analyse_verteilung_und_distanz():
         summary,
         x='Metrik',
         y='Durchschnittswert',
-        title='Analyse der Verteilung und Distanz der Zahlen auf dem Gitter',
+        title='Analyse der Verteilung und Distanz der Zahlen auf dem Gitter<br><sub>{}</sub>'.format(chi_test),
         labels={'Metrik': 'Metrik', 'Durchschnittswert': 'Wert'},
         text='Durchschnittswert',
         hover_data={'Beschreibung': True}
     )
     fig.update_traces(textposition='outside')
-    fig.update_layout(title_x=0.5)
-
     return json.loads(fig.to_json())
 
 

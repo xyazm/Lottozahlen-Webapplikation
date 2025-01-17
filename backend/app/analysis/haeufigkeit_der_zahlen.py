@@ -2,6 +2,7 @@ import pandas as pd
 import json
 from collections import Counter
 from flask import request, jsonify
+from .chi_quadrat import chi_quadrat_haufigkeit
 from . import analysis_routes, login_required_admin
 from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db, get_lottoscheine_letzte_woche
 import plotly.express as px
@@ -69,6 +70,8 @@ def generate_haeufigkeit_feedback(haeufigkeit):
         return ["Keine Zahlen wurden ausgewählt."]
     meistgewaehlte = max(haeufigkeit, key=haeufigkeit.get)
     feedback.append(f"Die meistgewählte Zahl ist {meistgewaehlte} mit {haeufigkeit[meistgewaehlte]} Wahlen.\n")
+    chi_feedback = chi_quadrat_haufigkeit(haeufigkeit)
+    feedback.append(chi_feedback)
     return feedback
 
 
@@ -128,6 +131,7 @@ def get_lottozahlen_haeufigkeit():
 
     # Häufigkeitsdaten vorbereiten
     gitter_data = vorbereiten_haeufigkeitsdaten(haeufigkeit)
+    chi_feedback = chi_quadrat_haufigkeit(haeufigkeit)
 
     # Scatterplot erstellen
     scatter_fig = px.scatter(
@@ -137,7 +141,7 @@ def get_lottozahlen_haeufigkeit():
         size='Häufigkeit',
         color='Häufigkeit',
         text='Zahl',
-        title='Beliebtheit der Felder im 7x7-Gitter (Scatterplot)',
+        title='Beliebtheit der Felder im 7x7-Gitter (Scatterplot)<br><sub>{}</sub>'.format(chi_feedback),
         labels={'Spalte': 'Spalte (1-7)', 'Zeile': 'Zeile (1-7)', 'Häufigkeit': 'Anzahl der Wahlen'},
         color_continuous_scale='Viridis'
     )
@@ -146,5 +150,11 @@ def get_lottozahlen_haeufigkeit():
         textposition='middle center',
         hovertemplate='<b>Zahl %{text}</b><br>Häufigkeit: %{marker.size}<extra></extra>'
     )
-
+        # Layout anpassen: Quadrat
+    scatter_fig.update_layout(
+        width=600,  # Breite für ein quadratisches Layout
+        height=600,  # Höhe für ein quadratisches Layout
+    )
+    
+    
     return json.loads(scatter_fig.to_json())
