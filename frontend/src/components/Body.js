@@ -14,8 +14,8 @@ export default function Body() {
   const { isAuthenticated, isAdmin } = useAuth();
 
   return (
-  <main className="min-h-screen bg-lightGray flex items-center justify-center px-24 py-12 w-[100%]"> {/* Hintergrund hellgrau, horizontaler Abstand 100px */}
-    <div className="container min-h-[calc(100vh-64px)] bg-white p-8 rounded-md shadow-md"> {/* Weißer Container für Inhalt */}
+  <main className="flex-grow container bg-lightGray flex flex-col p-8 h-full items-center justify-center">
+    <div className="flex-grow p-8 w-full bg-white rounded-md shadow-md">
       <Routes>
         {/* Startseite, wenn der Benutzer nicht authentifiziert ist */}
         <Route path="/" element={<Home />} />

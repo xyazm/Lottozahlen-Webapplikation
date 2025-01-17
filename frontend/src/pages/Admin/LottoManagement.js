@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useLottoManagement } from '../../hooks/useLottoManagement';
 import DownSvg from '../../assets/down.svg';
 import UpSvg from '../../assets/up.svg';

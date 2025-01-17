@@ -8,9 +8,9 @@ import {ReactComponent as DownSvg} from '../../assets/down.svg';
 
 export default function Admin() {
   return (
-    <div className="relative min-h-screen ">
+    <div className="w-full">
       {/* Header mit Dropdown */}
-      <header className="p-4 flex justify-between">
+      <header className="p-8 flex justify-between">
       <h2 className='mt-0'>Willkommen im Admin-Bereich!</h2>
         <AdminDropdown />
       </header>

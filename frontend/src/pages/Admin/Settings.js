@@ -77,7 +77,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto relative">
+    <div className="p-6 mx-auto relative">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Willkommen Admin</h1>
 
       {/* Bestätigungsmeldung */}
