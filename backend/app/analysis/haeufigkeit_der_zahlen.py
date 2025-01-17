@@ -4,7 +4,7 @@ from collections import Counter
 from flask import request, jsonify
 from .chi_quadrat import chi_quadrat_haufigkeit
 from . import analysis_routes, login_required_admin
-from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db, get_lottoscheine_letzte_woche
+from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db, get_lottoscheine_letzte_woche, get_lottohistoric_from_db
 import plotly.express as px
 
 
@@ -70,7 +70,7 @@ def generate_haeufigkeit_feedback(haeufigkeit):
         return ["Keine Zahlen wurden ausgewählt."]
     meistgewaehlte = max(haeufigkeit, key=haeufigkeit.get)
     feedback.append(f"Die meistgewählte Zahl ist {meistgewaehlte} mit {haeufigkeit[meistgewaehlte]} Wahlen.\n")
-    chi_feedback = chi_quadrat_haufigkeit(haeufigkeit)
+    chi_feedback = chi_quadrat_haufigkeit(haeufigkeit).replace("<br>", "")
     feedback.append(chi_feedback)
     return feedback
 
@@ -97,34 +97,24 @@ def user_haeufigkeit_route(user_scheine):
 
         # Feedback generieren
         feedback = generate_haeufigkeit_feedback(haeufigkeit)
-        #return jsonify({'feedback': feedback})
         return feedback
     except Exception as e:
         print(f"Fehler in der User-Häufigkeitsanalyse: {e}")
         return jsonify({'error': str(e)}), 500
 
-
-# Route: Globale Häufigkeitsanalyse mit Visualisierung
 @analysis_routes.route('/haeufigkeit')
 @login_required_admin
-def lotto_haeufigkeit_route():
-    """
-    Führt eine globale Häufigkeitsanalyse durch und erstellt eine Visualisierung.
-    """
-    try:
-        scatter_json = get_lottozahlen_haeufigkeit()
-        return jsonify({'haeufigkeit_plot': scatter_json})
-    except Exception as e:
-        print(f"Fehler in der Häufigkeitsanalyse: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
 def get_lottozahlen_haeufigkeit():
     """
     Führt eine globale Häufigkeitsanalyse durch und erstellt eine Visualisierung.
     """
-    #scheine = get_scheinexamples_from_db() #Nur zum testen solange keine Studenten scheien abgegeben haben
-    scheine = get_lottoscheine_from_db()
+    source = request.args.get('source', 'user')
+    if source == 'historic':
+        scheine = get_lottohistoric_from_db()
+    elif source == 'random':
+        scheine= get_scheinexamples_from_db()
+    else:
+        scheine = get_lottoscheine_from_db()
 
     # Häufigkeit berechnen
     haeufigkeit = berechne_haeufigkeit(scheine)
@@ -156,5 +146,4 @@ def get_lottozahlen_haeufigkeit():
         height=600,  # Höhe für ein quadratisches Layout
     )
     
-    
-    return json.loads(scatter_fig.to_json())
+    return jsonify({f'haeufigkeit_plot_{source}': json.loads(scatter_fig.to_json())})

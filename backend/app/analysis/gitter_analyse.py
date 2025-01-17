@@ -3,7 +3,7 @@ import numpy as np
 import json
 from flask import request, jsonify
 from . import analysis_routes, login_required_admin
-from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db
+from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db, get_lottohistoric_from_db
 import plotly.express as px
 from .chi_quadrat import chi_quadrat_gitter
 
@@ -75,7 +75,7 @@ def generate_gitter_feedback(results, zeilen_count, spalten_count):
                 f"Schein {index}:\n" +
                 "".join(zeilen_text + spalten_text)
             )
-    feedback.append(chi_quadrat_gitter(zeilen_count, spalten_count))
+    feedback.append(chi_quadrat_gitter(zeilen_count, spalten_count).replace("<br>", ""))
     return feedback
 
 
@@ -110,27 +110,19 @@ def user_gitteranalyse_route(user_scheine):
         print(f"Fehler in der User-Gitteranalyse: {e}")
         return jsonify({'error': str(e)}), 500
 
-
-# Route: Globale Gitteranalyse mit Visualisierung
 @analysis_routes.route('/gitteranalyse')
 @login_required_admin
-def gitteranalyse_route():
-    """
-    Führt eine Gitteranalyse für alle Scheine in der Datenbank durch und erstellt eine Visualisierung.
-    """
-    try:
-        plot_json = get_gitteranalyse()
-        return jsonify({'gitteranalyse_plot': plot_json})
-    except Exception as e:
-        print(f"Fehler in der Gitteranalyse: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
 def get_gitteranalyse():
     """
     Führt die Gitteranalyse für alle Scheine in der Datenbank durch und erstellt eine Visualisierung.
     """
-    scheine = get_lottoscheine_from_db()
+    source = request.args.get('source', 'user')
+    if source == 'historic':
+        scheine = get_lottohistoric_from_db()
+    elif source == 'random':
+        scheine= get_scheinexamples_from_db()
+    else:
+        scheine = get_lottoscheine_from_db()
     ergebnisse = []
     gesamt_zeilen_count = np.zeros(7, dtype=int)
     gesamt_spalten_count = np.zeros(7, dtype=int)
@@ -174,4 +166,4 @@ def get_gitteranalyse():
         labels={'Index': 'Position', 'Anzahl_Gewählte_Zahlen': 'Durchschnittliche Anzahl gewählter Zahlen'}
     )
 
-    return json.loads(combined_fig.to_json())
+    return jsonify({f'gitteranalyse_plot_{source}': json.loads(combined_fig.to_json())})

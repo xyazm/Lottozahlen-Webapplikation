@@ -75,12 +75,7 @@ def user_analysen_route(user_id):
             feedback_list.append("Kleine/Große Zahlen: \n" + ''.join(user_kleingrossanalyse_route(user_scheine))+'\n')
         except Exception as e:
             feedback_list.append(f"Kleine/Große Zahlen: Fehler: {str(e)}\n")
-        
-        try:
-            feedback_list.append("Chi-Quadrat-Analyse: \n" + ''.join(user_chiquadrat_route(user_scheine)) + '\n')
-        except Exception as e:
-            feedback_list.append(f"Chi-Quadrat-Analyse: Fehler: {str(e)}\n")
-
+            
         # Kombiniertes Feedback als String
         coded_feedback = ''.join(feedback_list)
 

@@ -4,7 +4,7 @@ import json
 from collections import Counter
 from flask import request, jsonify
 from . import analysis_routes, login_required_admin
-from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db
+from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db, get_lottohistoric_from_db
 from .chi_quadrat import chi_quadrat_gerade_ungerade
 import plotly.graph_objects as go
 
@@ -61,7 +61,7 @@ def generate_gerade_ungerade_feedback(kombinationen, total_scheine):
     häufigkeit = kombinationen[häufigste_kombination]
     feedback = []
     feedback.append(f"Die häufigste Kombination ist {häufigste_kombination[0]} gerade und {häufigste_kombination[1]} ungerade mit {häufigkeit} Scheinen.\n")
-    feedback.append(chi_quadrat_gerade_ungerade(kombinationen, total_scheine))
+    feedback.append(chi_quadrat_gerade_ungerade(kombinationen, total_scheine).replace("<br>", ""))
     return feedback
 
 # Route: User-spezifische Gerade/Ungerade-Analyse
@@ -97,23 +97,17 @@ def user_ungeradeanalyse_route(user_scheine):
 # Route: Globale Gerade/Ungerade-Analyse mit Visualisierung
 @analysis_routes.route('/ungeradeanalyse')
 @login_required_admin
-def gerade_ungerade_analyse_route():
-    """
-    Führt eine globale Gerade/Ungerade-Analyse durch und erstellt eine Visualisierung.
-    """
-    try:
-        plot_json = get_gerade_ungerade_plot()
-        return jsonify({'ungeradeanalyse_plot': plot_json})
-    except Exception as e:
-        print(f"Fehler in der Analyse für gerade und ungerade Zahlen: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
 def get_gerade_ungerade_plot():
     """
     Führt eine globale Gerade/Ungerade-Analyse durch und erstellt eine Visualisierung.
     """
-    scheine = get_lottoscheine_from_db()
+    source = request.args.get('source', 'user')
+    if source == 'historic':
+        scheine = get_lottohistoric_from_db()
+    elif source == 'random':
+        scheine= get_scheinexamples_from_db()
+    else:
+        scheine = get_lottoscheine_from_db()
     total_scheine = len(scheine)
 
     # Kombinationen berechnen
@@ -171,4 +165,4 @@ def get_gerade_ungerade_plot():
         showlegend=False
     )
 
-    return json.loads(fig.to_json())
+    return jsonify({f'ungeradeanalyse_plot_{source}': json.loads(fig.to_json())})

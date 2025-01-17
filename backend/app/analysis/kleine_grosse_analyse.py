@@ -3,7 +3,7 @@ import json
 from collections import Counter
 from flask import request, jsonify
 from . import analysis_routes, login_required_admin
-from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db
+from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db, get_lottohistoric_from_db
 import plotly.graph_objects as go
 from .chi_quadrat import chi_quadrat_kleine_grosse
 
@@ -45,7 +45,7 @@ def generate_kleine_grosse_feedback(kombinationen,total_scheine):
         return ["Es wurden keine Zahlen ausgewählt."]
     meistgewaehlte = max(kombinationen, key=kombinationen.get)
     feedback.append(f"Die häufigste Kombination ist {meistgewaehlte[0]} kleine und {meistgewaehlte[1]} große Zahlen mit {kombinationen[meistgewaehlte]} Scheinen.\n")
-    feedback.append(chi_quadrat_kleine_grosse(kombinationen,total_scheine))
+    feedback.append(chi_quadrat_kleine_grosse(kombinationen,total_scheine).replace("<br>", ""))
     return feedback
 
 
@@ -78,26 +78,19 @@ def user_kleingrossanalyse_route(user_scheine):
         return jsonify({'error': str(e)}), 500
 
 
-# Route: Globale Analyse mit Visualisierung
 @analysis_routes.route('/kleingrossanalyse')
 @login_required_admin
-def kleine_grosse_analyse_route():
-    """
-    Führt eine globale Analyse kleiner und großer Zahlen durch und erstellt eine Visualisierung.
-    """
-    try:
-        plot_json = get_kleine_grosse_combined_plot()
-        return jsonify({'kleingrossanalyse_plot': plot_json})
-    except Exception as e:
-        print(f"Fehler in der Analyse von kleinen und großen Zahlen: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
 def get_kleine_grosse_combined_plot():
     """
     Führt eine globale Analyse kleiner und großer Zahlen durch und erstellt eine Visualisierung.
     """
-    scheine = get_lottoscheine_from_db()
+    source = request.args.get('source', 'user')
+    if source == 'historic':
+        scheine = get_lottohistoric_from_db()
+    elif source == 'random':
+        scheine= get_scheinexamples_from_db()
+    else:
+        scheine = get_lottoscheine_from_db()
 
     # Ergebnisse berechnen
     kombinationen = Counter()
@@ -139,4 +132,4 @@ def get_kleine_grosse_combined_plot():
         showlegend=False
     )
 
-    return json.loads(fig.to_json())
+    return jsonify({f'kleingrossanalyse_plot_{source}': json.loads(fig.to_json())})

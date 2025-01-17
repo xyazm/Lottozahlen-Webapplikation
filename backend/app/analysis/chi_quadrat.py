@@ -68,20 +68,6 @@ def chi_quadrat_verteilung(df):
     return chi_quadrat_test(beobachtete_werte, erwartete_werte)
 
 
-def chi_quadrat_test(beobachtete_werte, erwartete_werte):
-
-    chi_stat, p_value = chisquare(f_obs=beobachtete_werte, f_exp=erwartete_werte)
-
-    #differenzen = [round(b - e, 2) for b, e in zip(beobachtete_werte, erwartete_werte)]
-    feedback = f"Chi-Statistik: {chi_stat:.4f}, p-Wert: {p_value:.4f}\n<br>"
-    #feedback += f"Differenzen: {differenzen}\n<br>"
-    if p_value > 0.05:
-        feedback += "Keine signifikante Abweichung.\n<br>"
-    else:
-        feedback += "Signifikante Abweichung.\n<br>"
-
-    return feedback
-
 def chi_quadrat_haufigkeit(haeufigkeit):
     """
     Führt einen Chi-Quadrat-Test durch, um zu überprüfen,
@@ -94,3 +80,48 @@ def chi_quadrat_haufigkeit(haeufigkeit):
     erwartete_werte = [erwartete_haeufigkeit] * 49
 
     return chi_quadrat_test(beobachtete_werte, erwartete_werte)
+
+# Hilfsfunktion: Chi-Quadrat-Test
+def chi_quadrat_reihen(reihen_counts, total_scheine):
+    """
+    Führt einen Chi-Quadrat-Test für die Reihen-Analyse durch.
+    Erwartet eine abnehmende Wahrscheinlichkeit für längere Reihen (z. B. weniger 6er-Reihen als 2er-Reihen).
+    """
+        # Wahrscheinlichkeiten aus der Analyse
+    p_values = {
+        'Reihe_2': 0.495,  # Zwillinge
+        'Reihe_3': 0.048,  # Drillinge
+        'Reihe_4': 0.003,  # Vierlinge
+        'Reihe_5': 0.0001,  # Fünflinge
+        'Reihe_6': 0.000003,  # Sechslinge
+    }
+    # Wahrscheinlichkeit für "keine Reihe" berechnen
+    p_keine_reihe = 1 - sum(p_values.values())
+
+    # Erwartete Werte berechnen
+    erwartete_werte = [p_keine_reihe * total_scheine]  # Start mit "keine Reihe"
+    erwartete_werte = [p_values[f'Reihe_{i}'] * total_scheine for i in range(2, 7)]
+
+    beobachtete_werte = [reihen_counts.get('Keine_Reihe', 0)] 
+    beobachtete_werte = [reihen_counts.get(f'Reihe_{i}', 0) for i in range(2, 7)]
+
+    # Summen synchronisieren (falls nötig)
+    sum_beobachtet = sum(beobachtete_werte)
+    scale_factor = sum_beobachtet / sum(erwartete_werte)
+    erwartete_werte = [value * scale_factor for value in erwartete_werte]
+
+    beobachtete_werte = np.array(beobachtete_werte, dtype=float)
+    erwartete_werte = np.array(erwartete_werte, dtype=float)
+    
+    return chi_quadrat_test(beobachtete_werte, erwartete_werte)
+
+def chi_quadrat_test(beobachtete_werte, erwartete_werte):
+    chi_stat, p_value = chisquare(f_obs=beobachtete_werte, f_exp=erwartete_werte)
+
+    feedback = f"Chi-Statistik: {chi_stat:.4f}, p-Wert: {p_value:.4f}\n<br>"
+    if p_value > 0.05:
+        feedback += "Keine signifikante Abweichung.\n<br>"
+    else:
+        feedback += "Signifikante Abweichung.\n<br>"
+
+    return feedback

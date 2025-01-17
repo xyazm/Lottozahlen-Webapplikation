@@ -213,6 +213,10 @@ class LottoHistoric(db.Model):
     lottozahl5 = db.Column(db.Integer, nullable=False)
     lottozahl6 = db.Column(db.Integer, nullable=False)
 
+def get_lottohistoric_from_db():
+    scheine = LottoHistoric.query.all()
+    return scheine if scheine else None
+
 def save_lottohistoric_to_db(lottoscheine_df):
     for entry in lottoscheine_df:
         print(entry)

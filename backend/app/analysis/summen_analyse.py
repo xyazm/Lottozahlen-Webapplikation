@@ -3,7 +3,7 @@ import json
 from collections import Counter
 from flask import request, jsonify
 from . import analysis_routes, login_required_admin
-from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db
+from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db, get_lottohistoric_from_db
 import plotly.graph_objects as go
 
 
@@ -105,23 +105,17 @@ def user_summenanalyse_route(user_scheine):
 # Route: Globale Summenanalyse mit Visualisierung
 @analysis_routes.route('/summenanalyse')
 @login_required_admin
-def summenanalyse_route():
-    """
-    Führt eine globale Summenanalyse durch und erstellt eine Visualisierung.
-    """
-    try:
-        plot_json = get_summen_combined_plot()
-        return jsonify({'summenanalyse_plot': plot_json})
-    except Exception as e:
-        print(f"Fehler in der Summenanalyse: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
 def get_summen_combined_plot():
     """
     Führt eine globale Summenanalyse durch und erstellt eine Visualisierung.
     """
-    scheine = get_lottoscheine_from_db()
+    source = request.args.get('source', 'user')
+    if source == 'historic':
+        scheine = get_lottohistoric_from_db()
+    elif source == 'random':
+        scheine= get_scheinexamples_from_db()
+    else:
+        scheine = get_lottoscheine_from_db()
 
     # Summenkategorien definieren
     summenkategorien = summenkategorien_definieren()
@@ -160,4 +154,4 @@ def get_summen_combined_plot():
         showlegend=False
     )
 
-    return json.loads(fig.to_json())
+    return jsonify({f'summenanalyse_plot_{source}': json.loads(fig.to_json())})

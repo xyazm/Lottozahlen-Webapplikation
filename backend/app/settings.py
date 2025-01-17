@@ -30,8 +30,7 @@ def save_feedback(user_id):
     student_id = get_jwt_identity()
     feedback_text = data.get('feedback_text')
     scheine = data.get('scheine')
-
-    print("Empfangene Daten:", scheine)
+    
     if not feedback_text or not isinstance(feedback_text, str):
         return jsonify({'status': 'error', 'message': 'Feedback-Text ist erforderlich.'}), 400
 

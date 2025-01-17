@@ -5,7 +5,7 @@ from collections import Counter
 import plotly.graph_objects as go
 from flask import request, jsonify
 from . import analysis_routes, login_required_admin
-from ..database import get_scheinexamples_from_db
+from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db, get_lottohistoric_from_db
 
 # Hilfsfunktion: Diagonalen kategorisieren
 def diagonalen_kategorisieren():
@@ -98,25 +98,21 @@ def user_diagonaleanalyse_route(user_scheine):
 
 
 # Route: Globale Diagonalenanalyse mit Visualisierung
+
 @analysis_routes.route('/diagonaleanalyse')
 @login_required_admin
-def diagonaleanalyse_route():
-    """
-    Führt die globale Diagonalenanalyse durch und erstellt eine Visualisierung.
-    """
-    try:
-        plot_json = get_diagonale_combined_plot()
-        return jsonify({'diagonaleanalyse_plot': plot_json})
-    except Exception as e:
-        print(f"Fehler in der Diagonaleanalyse: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
 def get_diagonale_combined_plot():
     """
     Erstellt eine Visualisierung der globalen Diagonalenanalyse.
     """
-    scheine = get_scheinexamples_from_db()
+    source = request.args.get('source', 'user')
+    if source == 'historic':
+        scheine = get_lottohistoric_from_db()
+    elif source == 'random':
+        scheine= get_scheinexamples_from_db()
+    else:
+        scheine = get_lottoscheine_from_db()
+
     diagonalen = diagonalen_kategorisieren()
 
     # Ergebnisse sammeln
@@ -184,4 +180,4 @@ def get_diagonale_combined_plot():
         showlegend=False
     )
 
-    return json.loads(fig.to_json())
+    return jsonify({f'diagonaleanalyse_plot_{source}': json.loads(fig.to_json())})
