@@ -2,8 +2,9 @@ import pandas as pd
 import json
 from collections import Counter
 from flask import request, jsonify
+from .chi_quadrat import chi_quadrat_haufigkeit
 from . import analysis_routes, login_required_admin
-from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db, get_lottoscheine_letzte_woche
+from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db, get_lottoscheine_letzte_woche, get_lottohistoric_from_db
 import plotly.express as px
 
 
@@ -13,14 +14,17 @@ def berechne_haeufigkeit(scheine):
     """
     zahlen = []
     for schein in scheine:
-        zahlen.extend([
-            schein.lottozahl1, 
-            schein.lottozahl2, 
-            schein.lottozahl3, 
-            schein.lottozahl4, 
-            schein.lottozahl5, 
-            schein.lottozahl6
-        ])
+        zahlen_liste = [
+            schein.lottozahl1,
+            schein.lottozahl2,
+            schein.lottozahl3,
+            schein.lottozahl4,
+            schein.lottozahl5,
+            schein.lottozahl6,
+        ]
+        if len(zahlen_liste) != 6:
+            raise ValueError("Jeder Schein muss genau 6 Zahlen enthalten.")
+        zahlen.extend(zahlen_liste)
 
     haeufigkeit = Counter(zahlen)
     return haeufigkeit
@@ -66,6 +70,8 @@ def generate_haeufigkeit_feedback(haeufigkeit):
         return ["Keine Zahlen wurden ausgewählt."]
     meistgewaehlte = max(haeufigkeit, key=haeufigkeit.get)
     feedback.append(f"Die meistgewählte Zahl ist {meistgewaehlte} mit {haeufigkeit[meistgewaehlte]} Wahlen.\n")
+    chi_feedback = chi_quadrat_haufigkeit(haeufigkeit).replace("<br>", "")
+    feedback.append(chi_feedback)
     return feedback
 
 
@@ -81,44 +87,41 @@ def user_haeufigkeit_route(user_scheine):
         if not user_scheine:
             return jsonify({'error': 'Keine Lottoscheine übergeben.'}), 400
         
-        haeufigkeit = berechne_haeufigkeit(user_scheine)
+        zahlen = []
+        for schein in user_scheine:
+            if len(schein) != 6:  # Prüfen, ob jeder Schein genau 6 Zahlen enthält
+                raise ValueError("Jeder Schein muss genau 6 Zahlen enthalten.")
+            zahlen.extend(schein)  # Füge die Zahlen des Scheins zur Gesamtliste hinzu
+
+        haeufigkeit = Counter(zahlen)
 
         # Feedback generieren
         feedback = generate_haeufigkeit_feedback(haeufigkeit)
-        #return jsonify({'feedback': feedback})
         return feedback
     except Exception as e:
         print(f"Fehler in der User-Häufigkeitsanalyse: {e}")
         return jsonify({'error': str(e)}), 500
 
-
-# Route: Globale Häufigkeitsanalyse mit Visualisierung
 @analysis_routes.route('/haeufigkeit')
 @login_required_admin
-def lotto_haeufigkeit_route():
-    """
-    Führt eine globale Häufigkeitsanalyse durch und erstellt eine Visualisierung.
-    """
-    try:
-        scatter_json = get_lottozahlen_haeufigkeit()
-        return jsonify({'haeufigkeit_plot': scatter_json})
-    except Exception as e:
-        print(f"Fehler in der Häufigkeitsanalyse: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
 def get_lottozahlen_haeufigkeit():
     """
     Führt eine globale Häufigkeitsanalyse durch und erstellt eine Visualisierung.
     """
-    #scheine = get_scheinexamples_from_db() #Nur zum testen solange keine Studenten scheien abgegeben haben
-    scheine = get_lottoscheine_from_db()
+    source = request.args.get('source', 'user')
+    if source == 'historic':
+        scheine = get_lottohistoric_from_db()
+    elif source == 'random':
+        scheine= get_scheinexamples_from_db()
+    else:
+        scheine = get_lottoscheine_from_db()
 
     # Häufigkeit berechnen
     haeufigkeit = berechne_haeufigkeit(scheine)
 
     # Häufigkeitsdaten vorbereiten
     gitter_data = vorbereiten_haeufigkeitsdaten(haeufigkeit)
+    chi_feedback = chi_quadrat_haufigkeit(haeufigkeit)
 
     # Scatterplot erstellen
     scatter_fig = px.scatter(
@@ -128,7 +131,7 @@ def get_lottozahlen_haeufigkeit():
         size='Häufigkeit',
         color='Häufigkeit',
         text='Zahl',
-        title='Beliebtheit der Felder im 7x7-Gitter (Scatterplot)',
+        title='Beliebtheit der Felder im 7x7-Gitter (Scatterplot)<br><sub>{}</sub>'.format(chi_feedback),
         labels={'Spalte': 'Spalte (1-7)', 'Zeile': 'Zeile (1-7)', 'Häufigkeit': 'Anzahl der Wahlen'},
         color_continuous_scale='Viridis'
     )
@@ -137,5 +140,10 @@ def get_lottozahlen_haeufigkeit():
         textposition='middle center',
         hovertemplate='<b>Zahl %{text}</b><br>Häufigkeit: %{marker.size}<extra></extra>'
     )
-
-    return json.loads(scatter_fig.to_json())
+        # Layout anpassen: Quadrat
+    scatter_fig.update_layout(
+        width=600,  # Breite für ein quadratisches Layout
+        height=600,  # Höhe für ein quadratisches Layout
+    )
+    
+    return jsonify({f'haeufigkeit_plot_{source}': json.loads(scatter_fig.to_json())})

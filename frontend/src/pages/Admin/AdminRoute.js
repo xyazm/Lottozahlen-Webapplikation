@@ -11,7 +11,7 @@ function AdminRoute({ children }) {
   try {
     const decodedToken = JSON.parse(atob(token.split('.')[1]));
     if (!decodedToken.is_admin) {
-      return <Navigate to="/login" />;
+      return <Navigate to="/lottoschein" />;
     }
   } catch (error) {
     console.error("Ungültiger Token:", error);

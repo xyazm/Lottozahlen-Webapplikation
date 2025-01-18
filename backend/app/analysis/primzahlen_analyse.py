@@ -4,7 +4,8 @@ import plotly.express as px
 from sympy import primerange
 from flask import request, jsonify
 from . import analysis_routes, login_required_admin
-from ..database import get_scheinexamples_from_db
+from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db, get_lottohistoric_from_db
+from .chi_quadrat import chi_quadrat_primzahlen
 
 
 # Hilfsfunktion: Liste der Primzahlen berechnen
@@ -48,6 +49,7 @@ def generate_primzahlen_feedback(anzahl_primzahlen_pro_schein):
     feedback.append(f"Der Durchschnitt der Primzahlen pro Schein liegt bei {durchschnitt:.2f}.\n")
     maximale_anzahl = max(anzahl_primzahlen_pro_schein)
     feedback.append(f"Die höchste Anzahl von Primzahlen in einem Schein beträgt {maximale_anzahl}.\n")
+    feedback.append(chi_quadrat_primzahlen(anzahl_primzahlen_pro_schein).replace("<br>", ""))
     return feedback
 
 
@@ -67,7 +69,7 @@ def user_primzahlenanalyse_route(user_scheine):
 
         # Ergebnisse berechnen
         anzahl_primzahlen_pro_schein = [
-            berechne_primzahlen_anzahl(schein.get('numbers', []), primzahlen_set)
+            berechne_primzahlen_anzahl(schein, primzahlen_set)
             for schein in user_scheine
         ]
 
@@ -80,27 +82,19 @@ def user_primzahlenanalyse_route(user_scheine):
         return jsonify({'error': str(e)}), 500
 
 
-# Route: Globale Primzahlenanalyse mit Visualisierung
 @analysis_routes.route('/primzahlenanalyse')
 @login_required_admin
-def primzahlenanalyse_route():
-    """
-    Führt eine globale Primzahlenanalyse durch und erstellt eine Visualisierung.
-    """
-    try:
-        plot_data = analyse_primzahlen_pro_schein()
-        return jsonify({'primzahlenanalyse_plot': plot_data})
-    except Exception as e:
-        print(f"Fehler in der Zahlenanalyse: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
 def analyse_primzahlen_pro_schein():
     """
     Führt eine globale Primzahlenanalyse durch und erstellt eine Visualisierung.
     """
-    # Lottoscheine aus der Datenbank abrufen
-    scheine = get_scheinexamples_from_db()
+    source = request.args.get('source', 'user')
+    if source == 'historic':
+        scheine = get_lottohistoric_from_db()
+    elif source == 'random':
+        scheine= get_scheinexamples_from_db()
+    else:
+        scheine = get_lottoscheine_from_db()
 
     # Liste der Primzahlen im Bereich 1 bis 49
     primzahlen_set = get_primzahlen_set()
@@ -117,6 +111,8 @@ def analyse_primzahlen_pro_schein():
         for schein in scheine
     ]
 
+    chi_test = chi_quadrat_primzahlen(anzahl_primzahlen_pro_schein)
+
     # Daten für die Visualisierung vorbereiten
     df = vorbereiten_primzahlen_daten(anzahl_primzahlen_pro_schein)
 
@@ -125,7 +121,7 @@ def analyse_primzahlen_pro_schein():
         df,
         x='Anzahl_Primzahlen',
         y='Häufigkeit',
-        title='Verteilung der Anzahl der Primzahlen in Lottoscheinen',
+        title='Verteilung der Anzahl der Primzahlen in Lottoscheinen<br><sub>{}</sub>'.format(chi_test),
         labels={'Anzahl_Primzahlen': 'Anzahl der Primzahlen', 'Häufigkeit': 'Häufigkeit'},
         text='Häufigkeit'
     )
@@ -134,8 +130,7 @@ def analyse_primzahlen_pro_schein():
         xaxis=dict(tickmode='linear', tick0=0, dtick=1),
         yaxis_title='Häufigkeit',
         xaxis_title='Anzahl der Primzahlen pro Schein',
-        title_x=0.5
+        height=600,
     )
 
-    # Rückgabe der Plotly-Figur als JSON
-    return json.loads(fig.to_json())
+    return jsonify({f'primzahlenanalyse_plot_{source}': json.loads(fig.to_json())})

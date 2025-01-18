@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSettings } from '../../hooks/useSettings';
 import Button from '../../components/Button';
 import ConfirmationMessage from '../../components/ConfirmationMessage';
+import HelpSvg from '../../assets/help.svg';
 
 export default function Settings() {
   const {
@@ -76,7 +77,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto relative">
+    <div className="p-6 mx-auto relative">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Willkommen Admin</h1>
 
       {/* Bestätigungsmeldung */}
@@ -170,7 +171,7 @@ function DatabaseLottoscheine({ handleDBUpdate, handleRandomScheineUpdate }) {
               className="ml-2 text-rubBlue hover:text-rubBlue"
               onClick={toggleTooltip}
             >
-              ?
+              <img src={HelpSvg} alt="Hilfe" className="h-3 w-3" />
             </button>
           )}
   

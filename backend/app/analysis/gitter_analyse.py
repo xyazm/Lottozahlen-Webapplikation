@@ -3,8 +3,9 @@ import numpy as np
 import json
 from flask import request, jsonify
 from . import analysis_routes, login_required_admin
-from ..database import get_scheinexamples_from_db
+from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db, get_lottohistoric_from_db
 import plotly.express as px
+from .chi_quadrat import chi_quadrat_gitter
 
 
 # Hilfsfunktion: Gitter erstellen
@@ -31,7 +32,7 @@ def analysiere_gitter(gitter):
 
 
 # Hilfsfunktion: Feedback generieren
-def generate_gitter_feedback(results):
+def generate_gitter_feedback(results, zeilen_count, spalten_count):
     """
     Generiert Feedback für die User-Gitteranalyse.
     Gibt nur die Zeilen und Spalten mit den meisten gewählten Zahlen aus.
@@ -74,7 +75,7 @@ def generate_gitter_feedback(results):
                 f"Schein {index}:\n" +
                 "".join(zeilen_text + spalten_text)
             )
-
+    feedback.append(chi_quadrat_gitter(zeilen_count, spalten_count).replace("<br>", ""))
     return feedback
 
 
@@ -93,51 +94,47 @@ def user_gitteranalyse_route(user_scheine):
         # Ergebnisse berechnen
         results = []
         for schein in user_scheine:
-            zahlen = schein.get('numbers', [])
-            if len(zahlen) != 6:
+            if len(schein) != 6:
                 results.append({'error': 'Ungültige Anzahl von Zahlen.'})
                 continue
 
-            gitter = erstelle_gitter(zahlen)
+            gitter = erstelle_gitter(schein)
             zeilen_count, spalten_count = analysiere_gitter(gitter)
             results.append({'zeilen': zeilen_count.tolist(), 'spalten': spalten_count.tolist()})
 
         # Feedback generieren
-        feedback = generate_gitter_feedback(results)
+        feedback = generate_gitter_feedback(results, zeilen_count, spalten_count)
         #return jsonify({'feedback': feedback})
         return feedback
     except Exception as e:
         print(f"Fehler in der User-Gitteranalyse: {e}")
         return jsonify({'error': str(e)}), 500
 
-
-# Route: Globale Gitteranalyse mit Visualisierung
 @analysis_routes.route('/gitteranalyse')
 @login_required_admin
-def gitteranalyse_route():
-    """
-    Führt eine Gitteranalyse für alle Scheine in der Datenbank durch und erstellt eine Visualisierung.
-    """
-    try:
-        plot_json = get_gitteranalyse()
-        return jsonify({'gitteranalyse_plot': plot_json})
-    except Exception as e:
-        print(f"Fehler in der Gitteranalyse: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
 def get_gitteranalyse():
     """
     Führt die Gitteranalyse für alle Scheine in der Datenbank durch und erstellt eine Visualisierung.
     """
-    scheine = get_scheinexamples_from_db()
+    source = request.args.get('source', 'user')
+    if source == 'historic':
+        scheine = get_lottohistoric_from_db()
+    elif source == 'random':
+        scheine= get_scheinexamples_from_db()
+    else:
+        scheine = get_lottoscheine_from_db()
     ergebnisse = []
+    gesamt_zeilen_count = np.zeros(7, dtype=int)
+    gesamt_spalten_count = np.zeros(7, dtype=int)
 
     for schein in scheine:
         zahlen = [schein.lottozahl1, schein.lottozahl2, schein.lottozahl3, 
                   schein.lottozahl4, schein.lottozahl5, schein.lottozahl6]
         gitter = erstelle_gitter(zahlen)
         zeilen_count, spalten_count = analysiere_gitter(gitter)
+
+        gesamt_zeilen_count += zeilen_count
+        gesamt_spalten_count += spalten_count
 
         for i in range(7):
             ergebnisse.append({
@@ -157,14 +154,16 @@ def get_gitteranalyse():
     df = pd.DataFrame(ergebnisse)
     trend_data = df.groupby(['Index', 'Art'])['Anzahl_Gewählte_Zahlen'].mean().reset_index()
 
+    chi_test = chi_quadrat_gitter(gesamt_zeilen_count, gesamt_spalten_count)
+
     # Visualisierung erstellen
     combined_fig = px.scatter(
         trend_data, 
         x='Index', 
         y='Anzahl_Gewählte_Zahlen',
         color='Art',
-        title="Durchschnittliche Anzahl ausgewählter Zahlen pro Zeile und Spalte",
+        title="Durchschnittliche Anzahl ausgewählter Zahlen pro Zeile und Spalte<br><sub>{}</sub>".format(chi_test),
         labels={'Index': 'Position', 'Anzahl_Gewählte_Zahlen': 'Durchschnittliche Anzahl gewählter Zahlen'}
     )
 
-    return json.loads(combined_fig.to_json())
+    return jsonify({f'gitteranalyse_plot_{source}': json.loads(combined_fig.to_json())})

@@ -6,8 +6,6 @@ import { ReactComponent as WarningIcon } from '../../assets/warning.svg';
 import { ReactComponent as KleeblattIcon } from '../../assets/kleeblatt.svg';
 import { useLottoschein } from '../../hooks/useLottoschein';
 import ConfirmationMessage from '../../components/ConfirmationMessage';
-import { useFeedback } from '../../hooks/useFeedback';
-import { useFeedback } from '../../hooks/useFeedback';
 
 export default function Lottoschein() {
   const { 
@@ -17,19 +15,13 @@ export default function Lottoschein() {
     scheine, 
     handleToggleNumber, 
     setAlertPosition, 
-    handleSaveScheine 
-  } = useLottoschein();
-
-  const { 
-    aifeedback, 
+    handleSave,
+    aifeedback,
     codedfeedback,
     isLoading, 
-    //error, 
-    generateAIFeedback,
-    generateCombinedFeedback,
-  } = useFeedback();
+    isSubmitted
+  } = useLottoschein();
 
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState('');
   const [messageType, setMessageType] = useState('');
 
@@ -38,21 +30,10 @@ export default function Lottoschein() {
     setAlertPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
 
-  const handleSubmit = async () => {
-    const response = await handleSaveScheine();
-    const scheinData = scheine.map((schein) => ({
-      numbers: schein.getSelectedNumbers(),
-    }));
-    if (response.status==="success") {
-      setIsSubmitted(true);
-      await generateCombinedFeedback(scheinData);
-      await generateAIFeedback(scheinData); 
-    }
-    else {
-      setTimeout(() => setConfirmationMessage(''), 3000);
-    }
-    setConfirmationMessage(response.message);
-    setMessageType(response.status);
+  const handleSaveFeedbackAndScheine = async () => {
+      const response = await handleSave();
+      setConfirmationMessage(response.message);
+      setMessageType(response.type);
   };
 
   return (
@@ -75,8 +56,8 @@ export default function Lottoschein() {
       <Button 
         buttonId="save-lottoscheine" 
         text="Lottoscheine abgeben"  
-        onClick={!isSubmitted ? handleSubmit : null}
-        //disabled={isSubmitted}
+        onClick={!isSubmitted ? handleSaveFeedbackAndScheine : null}
+        disabled={isSubmitted}
       />
       {isSubmitted && (
         <div className="mt-4">

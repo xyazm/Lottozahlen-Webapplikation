@@ -4,7 +4,8 @@ import json
 from flask import request, jsonify
 import plotly.express as px
 from . import analysis_routes, login_required_admin
-from ..database import get_scheinexamples_from_db
+from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db, get_lottohistoric_from_db
+from .chi_quadrat import chi_quadrat_verteilung
 
 
 # Hilfsfunktion: Gitter und Positionen berechnen
@@ -65,7 +66,7 @@ def analysiere_quadranten(positionen):
 
 
 # Hilfsfunktion: Feedback generieren
-def generate_verteilungs_feedback(ergebnisse):
+def generate_verteilungs_feedback(ergebnisse,df):
     """
     Generiert Feedback basierend auf der Verteilungsanalyse.
     """
@@ -76,6 +77,7 @@ def generate_verteilungs_feedback(ergebnisse):
     feedback.append(f"Durchschnittliche Standardabweichung der Spalten: {ergebnisse['Spalten_STD']:.2f}\n")
     feedback.append(f"Durchschnittliche Distanz zwischen Zahlen: {ergebnisse['Durchschnittliche_Distanz']:.2f}\n")
     feedback.append(f"Standardabweichung der Zahlen in Quadranten: {ergebnisse['Quadranten_STD']:.2f}\n")
+    feedback.append(chi_quadrat_verteilung(df).replace("<br>", ""))
     return feedback
 
 
@@ -91,11 +93,10 @@ def user_verteilungsanalyse_route(user_scheine):
 
         ergebnisse = []
         for schein in user_scheine:
-            zahlen = schein.get('numbers', [])
-            if len(zahlen) != 6:
+            if len(schein) != 6:
                 return jsonify({'error': f"Ungültiger Schein: {schein}"}), 400
 
-            gitter, positionen = berechne_gitter_und_positionen(zahlen)
+            gitter, positionen = berechne_gitter_und_positionen(schein)
             zeilen_std, spalten_std = analysiere_zeilen_und_spalten(gitter)
             durchschnittliche_distanz = berechne_paarweise_distanzen(positionen)
             quadranten_std = analysiere_quadranten(positionen)
@@ -107,8 +108,10 @@ def user_verteilungsanalyse_route(user_scheine):
                 'Quadranten_STD': quadranten_std
             })
 
+        df = pd.DataFrame(ergebnisse).mean().reset_index()
+        df.columns = ['Metrik', 'Durchschnittswert']
         # Feedback generieren
-        feedback = generate_verteilungs_feedback(pd.DataFrame(ergebnisse).mean().to_dict())
+        feedback = generate_verteilungs_feedback(pd.DataFrame(ergebnisse).mean().to_dict(), df)
         # return jsonify({'feedback': feedback})
         return feedback
     except Exception as e:
@@ -119,23 +122,17 @@ def user_verteilungsanalyse_route(user_scheine):
 # Route: Globale Verteilungsanalyse mit Visualisierung
 @analysis_routes.route('/verteilungsanalyse')
 @login_required_admin
-def verteilungsanalyse_route():
-    """
-    Führt eine globale Verteilungsanalyse durch und erstellt eine Visualisierung.
-    """
-    try:
-        plot_data = analyse_verteilung_und_distanz()
-        return jsonify({'verteilungsanalyse_plot': plot_data})
-    except Exception as e:
-        print(f"Fehler in der Verteilungsanalyse: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
 def analyse_verteilung_und_distanz():
     """
     Führt eine globale Verteilungsanalyse durch und erstellt eine Visualisierung.
     """
-    scheine = get_scheinexamples_from_db()
+    source = request.args.get('source', 'user')
+    if source == 'historic':
+        scheine = get_lottohistoric_from_db()
+    elif source == 'random':
+        scheine= get_scheinexamples_from_db()
+    else:
+        scheine = get_lottoscheine_from_db()
 
     ergebnisse = []
     for schein in scheine:
@@ -158,6 +155,7 @@ def analyse_verteilung_und_distanz():
     df = pd.DataFrame(ergebnisse)
     summary = df.mean().reset_index()
     summary.columns = ['Metrik', 'Durchschnittswert']
+    chi_test = chi_quadrat_verteilung(summary)
 
     # Hover-Beschreibungen
     hover_texts = {
@@ -173,16 +171,16 @@ def analyse_verteilung_und_distanz():
         summary,
         x='Metrik',
         y='Durchschnittswert',
-        title='Analyse der Verteilung und Distanz der Zahlen auf dem Gitter',
+        title='Analyse der Verteilung und Distanz der Zahlen auf dem Gitter<br><sub>{}</sub>'.format(chi_test),
         labels={'Metrik': 'Metrik', 'Durchschnittswert': 'Wert'},
         text='Durchschnittswert',
         hover_data={'Beschreibung': True}
     )
     fig.update_traces(textposition='outside')
-    fig.update_layout(title_x=0.5)
-
-    return json.loads(fig.to_json())
-
+    fig.update_layout(
+        height=600,  # Höhe für ein quadratisches Layout
+    )
+    return jsonify({f'verteilungsanalyse_plot_{source}': json.loads(fig.to_json())})
 
 # Titel: Analyse der Verteilung und Distanz der Zahlen auf dem Gitter
 

@@ -4,7 +4,8 @@ import json
 from collections import Counter
 from flask import request, jsonify
 from . import analysis_routes, login_required_admin
-from ..database import get_scheinexamples_from_db
+from ..database import get_scheinexamples_from_db, get_lottoscheine_from_db, get_lottohistoric_from_db
+from .chi_quadrat import chi_quadrat_gerade_ungerade
 import plotly.graph_objects as go
 
 
@@ -50,7 +51,7 @@ def vorbereiten_gerade_ungerade_daten(kombinationen, total_scheine):
 
 
 # Hilfsfunktion: Feedback generieren
-def generate_gerade_ungerade_feedback(kombinationen):
+def generate_gerade_ungerade_feedback(kombinationen, total_scheine):
     """
     Generiert Feedback basierend auf der Analyse von geraden und ungeraden Zahlen.
     """
@@ -58,8 +59,10 @@ def generate_gerade_ungerade_feedback(kombinationen):
         return ["Es wurden keine Kombinationen gefunden."]
     häufigste_kombination = max(kombinationen, key=kombinationen.get)
     häufigkeit = kombinationen[häufigste_kombination]
-    return [f"Die häufigste Kombination ist {häufigste_kombination[0]} gerade und {häufigste_kombination[1]} ungerade mit {häufigkeit} Scheinen.\n"]
-
+    feedback = []
+    feedback.append(f"Die häufigste Kombination ist {häufigste_kombination[0]} gerade und {häufigste_kombination[1]} ungerade mit {häufigkeit} Scheinen.\n")
+    feedback.append(chi_quadrat_gerade_ungerade(kombinationen, total_scheine).replace("<br>", ""))
+    return feedback
 
 # Route: User-spezifische Gerade/Ungerade-Analyse
 #@analysis_routes.route('/user_ungeradeanalyse', methods=['POST'])
@@ -75,14 +78,15 @@ def user_ungeradeanalyse_route(user_scheine):
         # Ergebnisse berechnen
         kombinationen = Counter()
         for schein in user_scheine:
-            zahlen = schein.get('numbers', [])
-            if len(zahlen) != 6:
+            if len(schein) != 6:
                 return jsonify({'error': f"Ungültiger Schein: {schein}"}), 400
-            kombination = berechne_gerade_ungerade_kombinationen(zahlen)
+            kombination = berechne_gerade_ungerade_kombinationen(schein)
             kombinationen[kombination] += 1
+        
+        total_scheine = len(user_scheine)
 
         # Feedback generieren
-        feedback = generate_gerade_ungerade_feedback(kombinationen)
+        feedback = generate_gerade_ungerade_feedback(kombinationen, total_scheine)
         #return jsonify({'feedback': feedback})
         return feedback
     except Exception as e:
@@ -93,23 +97,17 @@ def user_ungeradeanalyse_route(user_scheine):
 # Route: Globale Gerade/Ungerade-Analyse mit Visualisierung
 @analysis_routes.route('/ungeradeanalyse')
 @login_required_admin
-def gerade_ungerade_analyse_route():
-    """
-    Führt eine globale Gerade/Ungerade-Analyse durch und erstellt eine Visualisierung.
-    """
-    try:
-        plot_json = get_gerade_ungerade_plot()
-        return jsonify({'ungeradeanalyse_plot': plot_json})
-    except Exception as e:
-        print(f"Fehler in der Analyse für gerade und ungerade Zahlen: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
 def get_gerade_ungerade_plot():
     """
     Führt eine globale Gerade/Ungerade-Analyse durch und erstellt eine Visualisierung.
     """
-    scheine = get_scheinexamples_from_db()
+    source = request.args.get('source', 'user')
+    if source == 'historic':
+        scheine = get_lottohistoric_from_db()
+    elif source == 'random':
+        scheine= get_scheinexamples_from_db()
+    else:
+        scheine = get_lottoscheine_from_db()
     total_scheine = len(scheine)
 
     # Kombinationen berechnen
@@ -129,6 +127,7 @@ def get_gerade_ungerade_plot():
 
     # Daten für Visualisierung vorbereiten
     kombinationen_df = vorbereiten_gerade_ungerade_daten(kombinationen, total_scheine)
+    chi_test = chi_quadrat_gerade_ungerade(kombinationen,total_scheine)
 
     # Balkendiagramm erstellen
     fig = go.Figure()
@@ -159,11 +158,11 @@ def get_gerade_ungerade_plot():
 
     # Layout des Plots
     fig.update_layout(
-        title="Analyse der Kombination von geraden und ungeraden Zahlen",
+        title="Analyse der Kombination von geraden und ungeraden Zahlen<br><sub>{}</sub>".format(chi_test),
         xaxis=dict(title="Kombination gerade/ungerade", showgrid=False),
         yaxis=dict(title="Prozent (%)", showgrid=True),
         template="plotly_white",
         showlegend=False
     )
 
-    return json.loads(fig.to_json())
+    return jsonify({f'ungeradeanalyse_plot_{source}': json.loads(fig.to_json())})

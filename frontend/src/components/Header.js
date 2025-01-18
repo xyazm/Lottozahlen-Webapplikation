@@ -2,9 +2,11 @@ import React from 'react';
 import { ReactComponent as RubLogo } from '../assets/rub-logo.svg';
 import { ReactComponent as LogOut } from '../assets/log-out.svg'; 
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-export default function Header({ onLogout, sessionTimeLeft, isLoggedIn }) {
+export default function Header() {
   const location = useLocation();
+  const { isAuthenticated, logout, sessionTimeLeft } = useAuth();
 
   // Formatierte Zeit anzeigen
   const formatTime = (timeInSeconds) => {
@@ -56,7 +58,7 @@ export default function Header({ onLogout, sessionTimeLeft, isLoggedIn }) {
 
         {/* Session Timer und Status */}
         <div className="ml-auto text-white">
-          {isLoggedIn ? (
+          {isAuthenticated ? (
             <div className="flex items-center space-x-4">
               <span className="text-sm">{formatTime(sessionTimeLeft)} || </span>
               <span className="text-sm">✅ Logged In</span>
@@ -67,8 +69,8 @@ export default function Header({ onLogout, sessionTimeLeft, isLoggedIn }) {
         </div>
 
         {/* Logout Button */}
-        {isLoggedIn && ( // Logout-Button nur anzeigen, wenn der Benutzer eingeloggt ist
-          <div className="ml-4 cursor-pointer" onClick={onLogout}>
+        {isAuthenticated && ( // Logout-Button nur anzeigen, wenn der Benutzer eingeloggt ist
+          <div className="ml-4 cursor-pointer" onClick={logout}>
             <LogOut className="my-1 w-[30px] fill-white hover:fill-gray-300" />
           </div>
         )}

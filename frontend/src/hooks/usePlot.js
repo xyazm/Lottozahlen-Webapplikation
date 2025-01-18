@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 export function usePlot() {
   const [plots, setPlots] = useState({}); // Dynamisches Objekt, das alle Plots enthält
   const apiURL = 'http://localhost:5000'; // URL des Backends
+  const [source, setSource] = useState('user');
   const token = localStorage.getItem('token');
 
   const analyses = [
@@ -20,21 +21,24 @@ export function usePlot() {
 
   useEffect(() => {
     analyses.forEach(({ key, url }) => {
-      fetch(url, {
+      fetch(`${url}?source=${source}`, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
         },
       })
         .then((response) => response.json())
         .then((data) => {
           if (data) {
-            setPlots((prevPlots) => ({ ...prevPlots, [key]: data[`${key}_plot`] }));
+            setPlots((prevPlots) => ({
+              ...prevPlots,
+              [`${key}_${source}`]: data[`${key}_plot_${source}`],
+            }));
           }
         })
         .catch((error) => console.error(`Error fetching data for ${key}:`, error));
     });
-  }, []);
+  }, [source]);
 
-  return { plots, analyses };
+  return { plots, analyses, source, setSource  };
 }

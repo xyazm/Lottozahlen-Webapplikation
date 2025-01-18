@@ -14,7 +14,7 @@ def validate_terms_accepted(student_id):
 
 @settings_routes.route('/get-lottoschein-settings', methods=['GET'])
 @login_required
-def get_lottoschein_settings():
+def get_lottoschein_settings(user_id):
     """Hole die Lottoschein-Einstellungen für reguläre Benutzer."""
     settings = load_settings()
     if settings:
@@ -22,29 +22,25 @@ def get_lottoschein_settings():
     else:
         return jsonify({'status': 'error', 'message': 'Keine Einstellungen gefunden.'}), 404
 
-@settings_routes.route('/save-lottoscheine', methods=['POST'])
+@settings_routes.route('/save-feedback-and-lottoscheine', methods=['POST'])
 @login_required
-def save_lottoschein():
-    """Speichere Lottoscheine für einen Benutzer."""
+def save_feedback(user_id):
+    """Speichere Feedback und verknüpfe es mit den Lottoscheinen."""
     data = request.get_json()
     student_id = get_jwt_identity()
+    feedback_text = data.get('feedback_text')
     scheine = data.get('scheine')
+    
+    if not feedback_text or not isinstance(feedback_text, str):
+        return jsonify({'status': 'error', 'message': 'Feedback-Text ist erforderlich.'}), 400
 
-    # Zustimmung prüfen
-    if not validate_terms_accepted(student_id):
-        return jsonify({'status': 'error', 'message': 'Bitte stimmen Sie zuerst den Nutzungshinweisen zu.'}), 403
+    if not scheine or not isinstance(scheine, list):
+        return jsonify({'status': 'error', 'message': 'Eine Liste von Lottoschein-IDs ist erforderlich.'}), 400
+    
+    # Speichere das Feedback in der Feedback-Tabelle
+    save_feedback_and_lottoscheine(student_id, scheine, feedback_text)
 
-    if not scheine:
-        return jsonify({'status': 'error', 'message': 'Keine gültigen Scheine erhalten.'}), 400
-
-    # Jeden Schein für den Benutzer speichern
-    for schein in scheine:
-        lottoschein = schein.get('numbers')
-        if not lottoschein or len(lottoschein) != 6:
-            return jsonify({'status': 'error', 'message': 'Jeder Lottoschein muss genau 6 Zahlen enthalten.'}), 400
-        save_lottoschein_to_db(student_id=student_id, lottozahlen=lottoschein)
-
-    return jsonify({'status': 'success', 'message': 'Alle Lottoscheine wurden erfolgreich gespeichert.'}), 200
+    return jsonify({'status': 'success', 'message': 'Feedback erfolgreich gespeichert und verknüpft.'}), 200
 
 @settings_routes.route('/admin/settings', methods=['GET'])
 @login_required_admin

@@ -1,12 +1,13 @@
 from flask import request, current_app, jsonify
 from groq import Groq
-from . import feedback_routes, login_required
+from . import feedback_routes, login_required, get_jwt_identity
 
 client = Groq()
 
 @feedback_routes.route ('/predict', methods=['POST'])
 @login_required
-def predict():
+def predict(user_id):
+    student_id = get_jwt_identity()
     data = request.json
     scheine = data.get('scheine')
     # codedFeedback = data.get('codedfeedback')

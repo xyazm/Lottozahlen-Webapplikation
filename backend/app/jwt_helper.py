@@ -50,3 +50,18 @@ def verify_token():
         return jsonify({'isValid': True, 'is_admin': claims.get("is_admin", False)}), 200
     else:
         return jsonify({'isValid': False}), 401
+    
+@jwt_routes.route('/refresh-token', methods=['POST'])
+@jwt_required()  # Nur Zugriff mit gültigem Access Token
+def refresh_token():
+    """Erneuert den Token, wenn er noch gültig ist."""
+    try:
+        current_user = get_jwt_identity()
+        new_token = create_access_token(
+            identity=current_user,
+            additional_claims={"is_admin": get_jwt().get("is_admin")},
+            expires_delta=datetime.timedelta(minutes=30)
+        )
+        return jsonify({"access_token": new_token}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 422
