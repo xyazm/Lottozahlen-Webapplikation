@@ -44,7 +44,7 @@ export function useLottoschein() {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
-      }})
+      },credentials: 'include',})
       .then(response => response.json())
       .then(data => {
         if (data && !data.error) {
@@ -108,6 +108,7 @@ export function useLottoschein() {
             feedback_text: combinedFeedback,
             scheine: scheinData
           }),
+          credentials: 'include',
         });
   
         const data = await response.json();
@@ -132,6 +133,7 @@ export function useLottoschein() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ scheine }),
+          credentials: 'include',
         });
   
         if (!response.ok) {
@@ -161,6 +163,7 @@ export function useLottoschein() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ scheine }),
+          credentials: 'include',
         });
   
         if (!response.ok) {

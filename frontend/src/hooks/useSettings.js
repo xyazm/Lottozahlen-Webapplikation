@@ -16,6 +16,7 @@ export function useSettings() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
+        credentials: 'include',
       });
 
     const data = await response.json();
@@ -35,6 +36,7 @@ export function useSettings() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
+        credentials: 'include',
       });
 
       const data = await response.json();
@@ -59,6 +61,7 @@ export function useSettings() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`, // JWT hinzufügen
         },
+        credentials: 'include',
       });
   
       if (!response.ok) {
@@ -91,6 +94,7 @@ export function useSettings() {
           feedbackEnabled: feedback,
           personalData: personal,
         }),
+        credentials: 'include',
       });
 
       if (!response.ok) {

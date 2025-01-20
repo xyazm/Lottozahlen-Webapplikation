@@ -22,7 +22,7 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    CORS(app, resources={r"/*": {"origins": "http://localhost:3000", "supports_credentials": True}})
+    CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
 
     app.register_blueprint(settings_routes)
     app.register_blueprint(jwt_routes)
