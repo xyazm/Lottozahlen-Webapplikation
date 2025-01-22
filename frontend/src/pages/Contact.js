@@ -27,6 +27,7 @@ export default function Contact() {
           subject,
           message,
         }),
+        credentials: 'include',
       });
 
       if (response.ok) {

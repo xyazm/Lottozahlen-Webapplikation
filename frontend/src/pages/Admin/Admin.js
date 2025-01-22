@@ -5,6 +5,7 @@ import Settings from './Settings';
 import Statistics from './Statistics';
 import LottoManagement from './LottoManagement'
 import {ReactComponent as DownSvg} from '../../assets/down.svg';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Admin() {
   return (
@@ -33,14 +34,19 @@ function AdminDropdown() {
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   const location = useLocation(); // Holt die aktuelle Route
+  const { logout } = useAuth(); 
 
   const toggleDropdown = () => {
     setIsOpen((prev) => !prev);
   };
 
   const handleNavigation = (path) => {
-    navigate(path); // Navigiere zur ausgewählten Seite
-    setIsOpen(false); // Schließe das Dropdown
+    if (path === '/logout') {
+      logout(); // Ruft die logout-Funktion auf
+    } else {
+      navigate(path); // Navigiere zur ausgewählten Seite
+    }
+    setIsOpen(false);
   };
 
   // Ermittelt die aktuelle Seite anhand der Route
@@ -127,7 +133,7 @@ function AdminDropdown() {
             </li>
             <li>
               <button
-                onClick={() => handleNavigation('/login')}
+                onClick={() => handleNavigation('/logout')}
                 className="block w-full text-left px-4 py-2 hover:bg-gray-100"
               >
                 Abmelden

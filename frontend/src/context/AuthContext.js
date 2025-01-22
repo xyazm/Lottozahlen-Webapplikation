@@ -68,6 +68,7 @@ export const AuthProvider = ({ children }) => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
+          credentials: 'include',
         });
   
         if (response.ok) {
@@ -92,6 +93,7 @@ export const AuthProvider = ({ children }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, accept_terms: acceptTerms }),
+        credentials: 'include',
       });
 
       const data = await response.json();
@@ -108,6 +110,7 @@ export const AuthProvider = ({ children }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, access_code: accessCode }),
+        credentials: 'include',
       });
       const data = await response.json();
 
