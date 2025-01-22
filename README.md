@@ -35,7 +35,7 @@ Entferne die Dateiendung `.txt` in der Datei `.env.txt` im `Frontend`-Verzeichni
 Starte die Anwendung mit Docker:
 
 ```bash
-docker-compose up --build
+docker-compose up -d
 ```
 
 Die Datenbank wird automatisch mit Beispieldaten und einem Standard-Admin-Benutzer befüllt. Die Zugangsdaten des Admin-Benutzers lauten:
