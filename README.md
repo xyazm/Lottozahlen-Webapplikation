@@ -28,6 +28,9 @@ GROQ_API_KEY=your_groq_api_key_here
 
 > Entferne die Endung `.txt`, sodass die Datei nur noch `.env` heißt.
 
+### `.env` Datei im frontend
+Entferne die Dateiendung `.txt` in der Datei `.env.txt` im `Frontend`-Verzeichnis, sodass die Datei nur noch `.env` heißt.
+
 ### Docker starten
 Starte die Anwendung mit Docker:
 
