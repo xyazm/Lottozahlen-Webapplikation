@@ -35,11 +35,11 @@ export function useLottoschein() {
   const [codedfeedback, setCodedFeedback] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false); 
-  
+  const API_URL = process.env.REACT_APP_API_URL;
   const token = localStorage.getItem('token');
 
   useEffect(() => {
-    fetch('http://localhost:5000/get-lottoschein-settings', {
+    fetch(`${API_URL}/get-lottoschein-settings`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -98,7 +98,7 @@ export function useLottoschein() {
       const combinedFeedback = `${codedFeedback}\n\n${aiFeedback}`;
 
       try {
-        const response = await fetch('http://localhost:5000/save-feedback-and-lottoscheine', {
+        const response = await fetch(`${API_URL}/save-feedback-and-lottoscheine`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -126,7 +126,7 @@ export function useLottoschein() {
       setIsLoading(true);
       // try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/predict', {
+        const response = await fetch(`${API_URL}/predict`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -156,7 +156,7 @@ export function useLottoschein() {
       // setError(null);
       // try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/user_analysen', {
+        const response = await fetch(`${API_URL}/user_analysen`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

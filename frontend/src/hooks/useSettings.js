@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const API_URL = 'http://localhost:5000/admin';
+const API_URL = process.env.REACT_APP_API_URL;
 
 export function useSettings() {
   const [anzahlLottoscheine, setAnzahlLottoscheine] = useState(2);
@@ -10,7 +10,7 @@ export function useSettings() {
 
   const handleUpdateLottoDatabase = async () => {
     try {
-      const response = await fetch(`${API_URL}/update-lotto`, {
+      const response = await fetch(`${API_URL}/admin/update-lotto`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -30,7 +30,7 @@ export function useSettings() {
 
   const handleUpdateRandomLottoscheine = async () => {
     try {
-      const response = await fetch(`${API_URL}/generate-lotto-tickets`, {
+      const response = await fetch(`${API_URL}/admin/generate-lotto-tickets`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ export function useSettings() {
   // Function to save settings
   const saveSettings = async (number, feedback, personal) => {
     try {
-      const response = await fetch(`${API_URL}/settings`, {
+      const response = await fetch(`${API_URL}/admin/settings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

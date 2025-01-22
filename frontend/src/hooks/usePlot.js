@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 // Universelle Hook zum Laden der Analysen
 export function usePlot() {
   const [plots, setPlots] = useState({}); // Dynamisches Objekt, das alle Plots enthält
-  const apiURL = 'http://localhost:5000'; // URL des Backends
+  const apiURL = process.env.REACT_APP_API_URL; // URL des Backends
   const [source, setSource] = useState('user');
   const token = localStorage.getItem('token');
 

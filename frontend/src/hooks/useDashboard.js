@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 
+
 export function useDashboard() {
   const [minHaufigkeitDashboard, setMinHaeufigkeitDashboard] = useState(0);
   const [maxHaufigkeitDashboard, setMaxHaeufigkeitDashboard] = useState(0);
@@ -7,10 +8,11 @@ export function useDashboard() {
   const [scheineInsgesamt, setScheineInsgesamt] = useState(0);
   const [letzteAktualisierung, setLetzteAktualisierung] = useState('')
   const token = localStorage.getItem('token');
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const getHaeufigkeitForDashboard = async () => {
     try {
-      const response = await fetch('http://localhost:5000/dashboardStatics', {
+      const response = await fetch(`${API_URL}/dashboardStatics`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -32,7 +34,7 @@ export function useDashboard() {
   };
   const getLetzteAktualisierungHistorischeDB = async () => {
     try {
-      const response = await fetch('http://localhost:5000/admin/latest-lotto-data', {
+      const response = await fetch(`${API_URL}/admin/latest-lotto-data`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
