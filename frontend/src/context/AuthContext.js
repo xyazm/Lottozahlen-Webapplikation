@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [sessionTimeLeft, setSessionTimeLeft] = useState(1800); // 30 Minuten Session
   const [timerActive, setTimerActive] = useState(false);
   const sessionTimeoutRef = useRef(null);
+  const API_URL = process.env.REACT_APP_API_URL;
 
   // Funktion zum Einloggen mit Token
   const login = useCallback((token) => {
@@ -62,7 +63,7 @@ export const AuthProvider = ({ children }) => {
       if (!token) return; // Wenn kein gültiger Token existiert, abbrechen
   
       try {
-        const response = await fetch('http://localhost:5000/refresh-token', {
+        const response = await fetch(`${API_URL}/refresh-token`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -89,7 +90,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/login', {
+      const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, accept_terms: acceptTerms }),
@@ -106,7 +107,7 @@ export const AuthProvider = ({ children }) => {
   // API-Anfrage zur Überprüfung des Zugangscodes und Login-Start
   const validateAccessCode = async (email, accessCode) => {
     try {
-      const response = await fetch('http://localhost:5000/validate_code', {
+      const response = await fetch(`${API_URL}/validate_code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, access_code: accessCode }),

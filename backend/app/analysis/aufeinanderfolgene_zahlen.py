@@ -103,7 +103,7 @@ def user_aufeinanderfolgende_reihen_route(user_scheine):
         chi_test = chi_quadrat_reihen(total_reihen_counts, len(user_scheine))
         feedback = generate_feedback(results)
 
-        feedback.append(f"\nChi-Test Ergebnisse:\n{chi_test.replace("<br>", "")}")
+        feedback.append(f"\nChi-Test Ergebnisse:\n{chi_test.replace('<br>', '')}")
         return feedback
     except Exception as e:
         print(f"Fehler in der User-Analyse aufeinanderfolgender Zahlen: {e}")

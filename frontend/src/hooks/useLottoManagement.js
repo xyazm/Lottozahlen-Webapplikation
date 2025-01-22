@@ -17,6 +17,8 @@ export function useLottoManagement() {
   const entriesPerPage = 50;
   const dropdownRef = useRef(null);
   const token = localStorage.getItem('token');
+  const API_URL = process.env.REACT_APP_API_URL;
+
 
         // Berechne die Einträge, die auf der aktuellen Seite angezeigt werden sollen
     const paginatedData = tableData.slice(
@@ -40,7 +42,7 @@ export function useLottoManagement() {
 
   const fetchData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/admin/lottomanagement', {
+      const response = await fetch(`${API_URL}/admin/lottomanagement`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

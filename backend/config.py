@@ -2,10 +2,13 @@
 import os
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:@localhost/Bachelorarbeit_Lottoscheinanalyse'  # Verbindungs-URI
+    SQLALCHEMY_DATABASE_URI = (
+        f'mysql+mysqlconnector://{os.getenv("DB_USER")}:{os.getenv("DB_PASSWORD")}'
+        f'@{os.getenv("DB_SERVER")}/{os.getenv("DB_NAME")}'
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False 
-    MAIL_SERVER = 'sandbox.smtp.mailtrap.io'
-    MAIL_PORT = 2525
+    MAIL_SERVER = os.getenv('MAIL_SERVER')
+    MAIL_PORT =  os.getenv('MAIL_PORT')
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
     MAIL_USERNAME = os.getenv('MAIL_USERNAME')
