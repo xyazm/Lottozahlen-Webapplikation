@@ -4,6 +4,7 @@ import Button from '../../components/Button';
 import { ReactComponent as CrossHandwrittenIcon } from '../../assets/handwritten-cross.svg';
 import { ReactComponent as WarningIcon } from '../../assets/warning.svg';
 import { ReactComponent as KleeblattIcon } from '../../assets/kleeblatt.svg';
+import { ReactComponent as HelpSvg } from '../../assets/help.svg';
 import { useLottoschein } from '../../hooks/useLottoschein';
 import ConfirmationMessage from '../../components/ConfirmationMessage';
 
@@ -25,6 +26,12 @@ export default function Lottoschein() {
 
   const [confirmationMessage, setConfirmationMessage] = useState('');
   const [messageType, setMessageType] = useState('');
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  const toggleTooltip = () => {
+    setShowTooltip(true);
+    setTimeout(() => setShowTooltip(false), 5000);
+  };
 
   const trackMousePosition = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -48,6 +55,7 @@ export default function Lottoschein() {
         message={confirmationMessage}
         type={messageType}
       />
+    
       <div className="bg-blue-50 shadow-lg rounded-xl p-6 pb-4 max-w-[900px] w-full border border-gray-200 mb-4">
       <LottoscheinHeader />
       <LottoscheineGrid 
@@ -59,12 +67,25 @@ export default function Lottoschein() {
       Hinweis: Dieses Lottospiel ist nur eine Simulation und kein echtes Gewinnspiel.
     </p>
       </div>
+      <div className="relative flex items-center">
       <Button 
         buttonId="save-lottoscheine" 
         text="Lottoscheine abgeben"  
         onClick={!isSubmitted ? handleSaveFeedbackAndScheine : null}
         disabled={isSubmitted}
       />
+      <div className="cursor-pointer" onClick={toggleTooltip}>
+        <HelpSvg className="w-4 fill-rubBlue hover:fill-gray-300" />
+      </div>
+    {/* Tooltip-Inhalt */}
+    {showTooltip && (
+      <div className="absolute left-[20px] top-[-10px] z-50 p-3 bg-gray-900 text-white border border-gray-300 rounded shadow-lg w-80">
+        <h4 className="text-sm font-semibold mb-2">Anleitung:</h4>
+        Kreuze pro Schein 6 Zahlen an, indem du auf die Zahlen klickst.
+        Eine Zahl falsch angekreuzt? Kein Problem, klick einfach auf die Zahl dessen Wahl du rückgängig machen willst.
+      </div>
+    )}
+    </div>
       {isSubmitted && showFeedback &&(
         <div className="mt-4">
           {isLoading ? (
@@ -125,6 +146,7 @@ function LottoscheinHeader() {
         <h4 className="text-2xl">Gib dem Zufall keine Chance</h4>
       </div>
     </div>
+    
   );
 }
 
