@@ -19,7 +19,8 @@ export default function Lottoschein() {
     aifeedback,
     codedfeedback,
     isLoading, 
-    isSubmitted
+    isSubmitted, 
+    showFeedback,
   } = useLottoschein();
 
   const [confirmationMessage, setConfirmationMessage] = useState('');
@@ -64,9 +65,33 @@ export default function Lottoschein() {
         onClick={!isSubmitted ? handleSaveFeedbackAndScheine : null}
         disabled={isSubmitted}
       />
-      {isSubmitted && (
+      {isSubmitted && showFeedback &&(
         <div className="mt-4">
-          {isLoading ? 'Analysieren...' : null}
+          {isLoading ? (
+                <div className="flex items-center gap-2 text-gray-500">
+                  Analysieren...
+                <svg
+                  className="animate-spin h-5 w-5 text-gray-500"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.964 7.964 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              </div>
+            ) : null}
           <h3>Backend-Analyse</h3>
           <textarea
             className="w-full p-2 border rounded mt-2"
@@ -105,7 +130,7 @@ function LottoscheinHeader() {
 
 function LottoscheineGrid({ scheine, handleToggleNumber, isSubmitted }) {
   return (
-    <div id="lottoscheine-grid" className="flex flex-wrap items-start justify-items-start gap-4 w-full place-content-center">
+    <div id="lottoscheine-grid" className="flex flex-wrap items-start justify-items-start pt-4  gap-4 w-full place-content-center">
       {scheine.map((schein, i) => (
         <div key={i} id={`lottschein-${schein.index + 1}`} data-content={schein.index + 1} className="flag grid grid-cols-7 gap-1 border-rubGreen p-1 bg-green-100 border-[1.5px] hover-stift relative z-0 w-[max-content]">
           {Matrix7x7().map((row, j) => (
