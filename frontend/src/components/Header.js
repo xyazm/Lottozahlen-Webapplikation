@@ -6,13 +6,25 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Header() {
   const location = useLocation();
-  const { isAuthenticated, logout, sessionTimeLeft } = useAuth();
+  const { isAuthenticated, isAdmin, logout, sessionTimeLeft } = useAuth();
 
   // Formatierte Zeit anzeigen
   const formatTime = (timeInSeconds) => {
     const minutes = Math.floor(timeInSeconds / 60);
     const seconds = timeInSeconds % 60;
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
+  // Dynamischer Titel basierend auf Benutzerstatus
+  const getLoginTitle = () => {
+    if (!isAuthenticated) return "Login";
+    return isAdmin ? "Dashboard" : "Lottoscheine";
+  };
+
+  // Dynamische URL basierend auf Benutzerstatus
+  const getLoginPath = () => {
+    if (!isAuthenticated) return "/login";
+    return isAdmin ? "/admin" : "/lottoschein";
   };
 
   return (
@@ -35,12 +47,12 @@ export default function Header() {
           </li>
           <li>
             <a
-              href="/login"
+              href={getLoginPath()}
               className={`text-white hover:text-rubGreen hover:underline hover:decoration-rubGreen ${
                 location.pathname === '/login' ? 'underline decoration-rubGreen' : ''
               }`}
             >
-              Login
+              {getLoginTitle()}
             </a>
           </li>
           <li>

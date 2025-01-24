@@ -55,7 +55,7 @@ export function useSettings() {
         throw new Error("Kein Token gefunden.");
       }
   
-      const response = await fetch(`${API_URL}/settings`, {
+      const response = await fetch(`${API_URL}/admin/settings`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
