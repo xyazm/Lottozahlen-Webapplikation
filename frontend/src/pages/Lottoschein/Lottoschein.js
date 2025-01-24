@@ -37,7 +37,7 @@ export default function Lottoschein() {
   };
 
   return (
-    <div className="relative" onMouseMove={trackMousePosition}>
+    <div className="m-4" onMouseMove={trackMousePosition}>
       <Alert 
         showAlert={showAlert} 
         alertPosition={alertPosition} 
@@ -47,12 +47,17 @@ export default function Lottoschein() {
         message={confirmationMessage}
         type={messageType}
       />
+      <div className="bg-blue-50 shadow-lg rounded-xl p-6 pb-4 max-w-[900px] w-full border border-gray-200 mb-4">
       <LottoscheinHeader />
       <LottoscheineGrid 
         scheine={scheine} 
         handleToggleNumber={!isSubmitted ? handleToggleNumber : null} 
         isSubmitted={isSubmitted}
       />
+      <p className="mt-4 text-sm text-center text-gray-500">
+      Hinweis: Dieses Lottospiel ist nur eine Simulation und kein echtes Gewinnspiel.
+    </p>
+      </div>
       <Button 
         buttonId="save-lottoscheine" 
         text="Lottoscheine abgeben"  
@@ -84,7 +89,7 @@ export default function Lottoschein() {
 
 function LottoscheinHeader() {
   return (
-    <div id="lottoschein-topic" className="bg-rubBlue text-rubGreen font-heading flex items-center justify-between w-full">
+    <div id="lottoschein-topic" className="bg-rubBlue text-rubGreen font-heading flex items-center justify-between">
       <div id="lottoschein-topic-left" className="m-3 flex items-start">
         <KleeblattIcon className="w-8 h-8" />
         <h4 className="text-2xl">
@@ -100,7 +105,7 @@ function LottoscheinHeader() {
 
 function LottoscheineGrid({ scheine, handleToggleNumber, isSubmitted }) {
   return (
-    <div id="lottoscheine-grid" className="flex flex-wrap items-start justify-items-center gap-4">
+    <div id="lottoscheine-grid" className="flex flex-wrap items-start justify-items-start gap-4 w-full place-content-center">
       {scheine.map((schein, i) => (
         <div key={i} id={`lottschein-${schein.index + 1}`} data-content={schein.index + 1} className="flag grid grid-cols-7 gap-1 border-rubGreen p-1 bg-green-100 border-[1.5px] hover-stift relative z-0 w-[max-content]">
           {Matrix7x7().map((row, j) => (
