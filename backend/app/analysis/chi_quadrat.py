@@ -1,4 +1,5 @@
 from scipy.stats import chisquare
+from math import comb
 import pandas as pd
 import numpy as np
 
@@ -7,13 +8,21 @@ def chi_quadrat_primzahlen(anzahl_primzahlen_pro_schein):
     Führt einen Chi-Quadrat-Test für die Primzahlenanalyse durch.
     Vergleicht die beobachteten Häufigkeiten der Primzahlen mit den erwarteten Häufigkeiten.
     """
-    # Erwartete Häufigkeit: Gleichmäßige Verteilung auf 0 bis 6 Primzahlen
+    total_primzahlen=15
+    total_nicht_primzahlen=34
+    ziehungen=6
+    # Gesamtanzahl der analysierten Lottoscheine
     total_scheine = len(anzahl_primzahlen_pro_schein)
-    erwartete_haeufigkeit = total_scheine / 7  # Erwartung: gleichmäßige Verteilung auf 7 mögliche Werte (0-6)
+
+    # Berechne erwartete Werte basierend auf der hypergeometrischen Verteilung
+    erwartete_werte = [
+        total_scheine * (comb(total_primzahlen, k) * comb(total_nicht_primzahlen, ziehungen - k)) /
+        comb(total_primzahlen + total_nicht_primzahlen, ziehungen)
+        for k in range(ziehungen + 1)
+    ]
 
     # Zähle die Häufigkeit jeder Anzahl von Primzahlen (0 bis 6)
     beobachtete_werte = pd.Series(anzahl_primzahlen_pro_schein).value_counts().sort_index().reindex(range(7), fill_value=0).tolist()
-    erwartete_werte = [erwartete_haeufigkeit] * 7
 
     return chi_quadrat_test(beobachtete_werte, erwartete_werte)
 

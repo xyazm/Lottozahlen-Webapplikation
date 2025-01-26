@@ -68,6 +68,7 @@ const LottoManagement = () => {
           <li><b>feedback_id</b>: Suche nach einer ID, z.B. <i>feedback_id:17</i></li>
           <li><b>lottoschein_ids</b>: Suche nach Lotto-IDs, z.B. <i>lottoschein_ids:123</i></li>
           <li><b>lottoscheine</b>: Suche nach bestimmten Zahlen, z.B. <i>lottoscheine:34,35</i></li>
+          Um die Suche rückgängig zu machen und alle Einträge zu sehen, müssen Sie die such Leiste leeren und dann auf 'suchen' klicken.
         </ul>
       </div>
     )}
