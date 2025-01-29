@@ -123,3 +123,4 @@ npm start
 > **Hinweis:** Stelle sicher, dass du mindestens Node.js `v22.11.0` installiert hast.
 
 ---
+Die Webanwendung ist dann über http://localhost:3000/ erreichbar.
