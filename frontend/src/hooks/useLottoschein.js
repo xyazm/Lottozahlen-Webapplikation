@@ -93,7 +93,7 @@ export function useLottoschein() {
       setIsSubmitted(true);
 
       const codedFeedback = await generateCombinedFeedback(scheinData);
-      const aiFeedback = await generateAIFeedback(scheinData);
+      const aiFeedback = await generateAIFeedback(scheinData, codedFeedback);
 
       const combinedFeedback = `${codedFeedback}\n\n${aiFeedback}`;
 
@@ -122,7 +122,7 @@ export function useLottoschein() {
   };
 
     // Funktion für das AI-generierte Feedback
-    const generateAIFeedback = async (scheine) => {
+    const generateAIFeedback = async (scheine, codedFeedback) => {
       setIsLoading(true);
       // try {
         const token = localStorage.getItem('token');
@@ -132,7 +132,7 @@ export function useLottoschein() {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ scheine }),
+          body: JSON.stringify({ scheine , codedFeedback }),
           credentials: 'include',
         });
   

@@ -55,8 +55,7 @@ def student_login():
         email=email,
         terms_accepted=True  # Nutzungsbedingungen akzeptiert
     )
-    db.session.add(new_student)
-    db.session.commit()
+    add_student_to_db(new_student)
 
     # Zugangscode generieren und senden
     return _generate_and_send_access_code(new_student)
@@ -113,8 +112,7 @@ def validate_access_code():
                 return jsonify({'status': 'error', 'message': 'Zugangscode ist abgelaufen.'}), 401
             
             # Zugangscode löschen und Token generieren
-            db.session.delete(access_record)
-            db.session.commit()
+            delete_code_from_db(student.id)
 
             access_token = create_jwt_token(student.id)
             return jsonify({'status': 'success', 'message': 'Login erfolgreich!', 'access_token': access_token, 'isAdmin': False }), 200

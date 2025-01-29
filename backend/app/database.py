@@ -292,3 +292,9 @@ def get_code_from_db(id):
     """Holt den Zugangscode aus der Datenbank."""
     access_code = AccessCode.query.filter_by(student_id=id).first()
     return access_code if access_code else None
+
+def delete_code_from_db(id):
+    """Löscht den Zugangscode aus der Datenbank."""
+    access_record = get_code_from_db(id)
+    db.session.delete(access_record)
+    db.session.commit()

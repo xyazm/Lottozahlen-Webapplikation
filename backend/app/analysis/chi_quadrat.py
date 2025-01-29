@@ -41,12 +41,17 @@ def chi_quadrat_gitter(zeilen_count, spalten_count):
 def chi_quadrat_kleine_grosse(kombinationen, total_scheine):
     """
     Führt einen Chi-Quadrat-Test für die Verteilung kleiner und großer Zahlen durch.
-    Erwartet wird eine gleichmäßige Verteilung (d. h. etwa 3 kleine und 3 große Zahlen pro Schein).
+    Erwartet wird eine Verteilung basierend auf der hypergeometrischen Verteilung.
     """
-    erwartete_haeufigkeit = total_scheine / len(kombinationen)  # Gleichmäßige Verteilung erwartet
+    kleine_zahlen=25
+    grosse_zahlen=24
+    # Berechne erwartete Werte basierend auf der hypergeometrischen Verteilung
+    erwartete_werte = [
+        total_scheine * (comb(kleine_zahlen, k) * comb(grosse_zahlen, 6 - k)) / 
+        comb(kleine_zahlen + grosse_zahlen, 6)
+        for k in range(len(kombinationen))
+    ]
     beobachtete_werte = [count for count in kombinationen.values()]
-
-    erwartete_werte = [erwartete_haeufigkeit] * len(beobachtete_werte)
 
     return chi_quadrat_test(beobachtete_werte, erwartete_werte)
 
@@ -56,23 +61,30 @@ def chi_quadrat_gerade_ungerade(kombinationen, total_scheine):
     Führt einen Chi-Quadrat-Test für die Verteilung gerader und ungerader Zahlen durch.
     Erwartet wird eine gleichmäßige Verteilung (d.h. 3 gerade und 3 ungerade Zahlen pro Schein).
     """
-    erwartete_haeufigkeit = total_scheine / len(kombinationen)  # Gleichmäßige Verteilung erwartet
+    gerade_zahlen=24
+    ungerade_zahlen=25 
+    erwartete_werte = [
+        total_scheine * (comb(gerade_zahlen, k) * comb(ungerade_zahlen, 6 - k)) /
+        comb(gerade_zahlen + ungerade_zahlen, 6)
+        for k in range(len(kombinationen))
+    ]
     beobachtete_werte = [count for count in kombinationen.values()]
-
-    erwartete_werte = [erwartete_haeufigkeit] * len(beobachtete_werte)
 
     return chi_quadrat_test(beobachtete_werte, erwartete_werte)
 
 
-def chi_quadrat_verteilung(df):
+def chi_quadrat_verteilung(df, erwartete_werte_df):
     """
     Führt einen Chi-Quadrat-Test für die Verteilung der Zahlen auf Zeilen und Spalten durch.
-    Erwartet wird eine gleichmäßige Verteilung der Zahlen.
+    Erwartet werden Werte aus der Analyse der zufälligen Scheine.
     """
-    erwartete_haeufigkeit = df['Durchschnittswert'].mean()  # Erwartete durchschnittliche Häufigkeit
-    beobachtete_werte= df['Durchschnittswert'].tolist()
+    def normalize_values(values):
+        total = sum(values)
+        return [v / total for v in values]
+    # Normalisieren der Werte
+    beobachtete_werte = normalize_values(df['Durchschnittswert'].tolist())
+    erwartete_werte = normalize_values(erwartete_werte_df['Durchschnittswert'].tolist())
 
-    erwartete_werte = [erwartete_haeufigkeit] * len(beobachtete_werte)
 
     return chi_quadrat_test(beobachtete_werte, erwartete_werte)
 
@@ -96,7 +108,7 @@ def chi_quadrat_reihen(reihen_counts, total_scheine):
     Führt einen Chi-Quadrat-Test für die Reihen-Analyse durch.
     Erwartet eine abnehmende Wahrscheinlichkeit für längere Reihen (z. B. weniger 6er-Reihen als 2er-Reihen).
     """
-        # Wahrscheinlichkeiten aus der Analyse
+    # Wahrscheinlichkeiten aus der Analyse
     p_values = {
         'Reihe_2': 0.495,  # Zwillinge
         'Reihe_3': 0.048,  # Drillinge

@@ -37,9 +37,6 @@ def count_sequences(numbers, sequence_lengths):
                 sequence_counts[f'Reihe_{length}'] += 1
                 # Markiere alle Indizes dieser Sequenz als verwendet
                 used_indices.update(i + j for j in range(length))
-            print("Numbers:", numbers)
-            print("Sorted Numbers:", sorted_numbers)
-            print("Sequence Counts:", sequence_counts)
 
     return sequence_counts
 
@@ -83,7 +80,6 @@ def user_aufeinanderfolgende_reihen_route(user_scheine):
 
         # Analyse durchführen
         results = []
-        print("User Scheine Input:", user_scheine)
         total_reihen_counts = {f'Reihe_{i}': 0 for i in range(2, 7)}
         total_reihen_counts['Keine_Reihe'] = 0
         for index, schein in enumerate(user_scheine):

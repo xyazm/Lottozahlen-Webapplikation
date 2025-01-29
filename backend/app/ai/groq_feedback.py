@@ -1,4 +1,4 @@
-from flask import request, current_app, jsonify
+from flask import request, jsonify
 from groq import Groq
 from . import feedback_routes, login_required, get_jwt_identity
 
@@ -10,13 +10,13 @@ def predict(user_id):
     student_id = get_jwt_identity()
     data = request.json
     scheine = data.get('scheine')
-    # codedFeedback = data.get('codedfeedback')
+    coded_feedback = data.get('codedFeedback')
 
     if not scheine or not isinstance(scheine, list):
         return jsonify({'status': 'error', 'message' : 'Keine Lottoscheindaten übergeben.'}), 400
     
-    # if not codedFeedback or not isinstance(codedFeedback, str):
-    #     return jsonify({'status': 'error', 'message' : 'Ungültiges oder fehlendes codedFeedback.'}), 400
+    if not coded_feedback or not isinstance(coded_feedback, str):
+        return jsonify({'status': 'error', 'message' : 'Ungültiges oder fehlendes codedFeedback.'}), 400
     
     # 7x7-Gitter für visuelle Referenz
     grid = """
@@ -29,10 +29,13 @@ def predict(user_id):
     43 44 45 46 47 48 49
     """
     
-    # Das ist bereits die Analyse des Python-Backend für die unten gegebene Scheine:
-    # {codedFeedback}
     message = f"""
-    Analysiere die folgenden Lottoscheine, nutze auch das Ergebniss der Backend-Analyse:
+    Analysiere die folgenden Lottoscheine basierend auf der vorangegangenen Backend-Analyse:
+
+    Backend-Analyse:
+    {coded_feedback}
+
+    Lottoscheine:
     {scheine}
     """
 
@@ -59,9 +62,6 @@ def predict(user_id):
 def predict_with_language_model(message, prompt):
     chat_completion = client.chat.completions.create(
         messages=[
-        # Set an optional system message. This sets the behavior of the
-        # assistant and can be used to provide specific instructions for
-        # how it should behave throughout the conversation.
             {
                 'role': 'system',
                 'content': prompt
@@ -71,13 +71,11 @@ def predict_with_language_model(message, prompt):
                 "content": message,
             }
         ],
-        #model="mixtral-8x7b-32768",
-        model="llama-3.2-90b-vision-preview",
+        model="llama-3.3-70b-versatile",
+        #model="llama-3.2-90b-vision-preview",
         temperature=0.5,
         max_tokens=1024,
         stream=False,
     )
-    #for chunk in stream:
-       # prediction += chunk.choices[0].message.content
     prediction = chat_completion.choices[0].message.content
     return prediction

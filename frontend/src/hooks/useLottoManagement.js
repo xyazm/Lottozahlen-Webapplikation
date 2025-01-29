@@ -14,7 +14,7 @@ export function useLottoManagement() {
   const [sortConfig, setSortConfig] = useState({ key: '', direction: '' });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1); // Aktuelle Seite
-  const entriesPerPage = 50;
+  const entriesPerPage = 25;
   const dropdownRef = useRef(null);
   const token = localStorage.getItem('token');
   const API_URL = process.env.REACT_APP_API_URL;

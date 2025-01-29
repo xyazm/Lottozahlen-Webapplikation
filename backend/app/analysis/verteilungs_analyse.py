@@ -150,12 +150,37 @@ def analyse_verteilung_und_distanz():
             'Durchschnittliche_Distanz': durchschnittliche_distanz,
             'Quadranten_STD': quadranten_std
         })
+    
+    # Analyse der zufälligen Lottoscheine für die Erwartungswerte
+    random_scheine = get_scheinexamples_from_db()
+    erwartungswerte = []
+    for schein in random_scheine:
+        zahlen = [schein.lottozahl1, schein.lottozahl2, schein.lottozahl3,
+                  schein.lottozahl4, schein.lottozahl5, schein.lottozahl6]
+
+        gitter, positionen = berechne_gitter_und_positionen(zahlen)
+        zeilen_std, spalten_std = analysiere_zeilen_und_spalten(gitter)
+        durchschnittliche_distanz = berechne_paarweise_distanzen(positionen)
+        quadranten_std = analysiere_quadranten(positionen)
+
+        erwartungswerte.append({
+            'Zeilen_STD': zeilen_std,
+            'Spalten_STD': spalten_std,
+            'Durchschnittliche_Distanz': durchschnittliche_distanz,
+            'Quadranten_STD': quadranten_std
+        })
+
+    erwartungswerte_df = pd.DataFrame(erwartungswerte).mean().reset_index()
+    erwartungswerte_df.columns = ['Metrik', 'Durchschnittswert']
+
 
     # Durchschnittswerte berechnen
-    df = pd.DataFrame(ergebnisse)
-    summary = df.mean().reset_index()
-    summary.columns = ['Metrik', 'Durchschnittswert']
-    chi_test = chi_quadrat_verteilung(summary)
+    df = pd.DataFrame(ergebnisse).mean().reset_index()
+    df.columns = ['Metrik', 'Durchschnittswert']
+
+    # Chi-Quadrat-Test basierend auf den berchneten Erwartungswerten
+    chi_test = chi_quadrat_verteilung(df, erwartungswerte_df)
+
 
     # Hover-Beschreibungen
     hover_texts = {
@@ -164,11 +189,11 @@ def analyse_verteilung_und_distanz():
         'Durchschnittliche_Distanz': 'Mittlere Distanz zwischen gewählten Zahlen (hoch = weit verstreut)',
         'Quadranten_STD': 'Standardabweichung der Zahlen in Quadranten (niedrig = gleichmäßig verteilt)'
     }
-    summary['Beschreibung'] = summary['Metrik'].map(hover_texts)
+    df['Beschreibung'] = df['Metrik'].map(hover_texts)
 
     # Visualisierung
     fig = px.bar(
-        summary,
+        df,
         x='Metrik',
         y='Durchschnittswert',
         title='Analyse der Verteilung und Distanz der Zahlen auf dem Gitter<br><sub>{}</sub>'.format(chi_test),
